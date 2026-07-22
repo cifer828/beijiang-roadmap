@@ -2,6 +2,7 @@
 
 import { ChangeEvent, FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import TripMap from "@/components/TripMap";
+import AmapLink from "@/components/AmapLink";
 import { BOOKING_CHECKLIST, DAYS, FIXED_CHECKLIST, SIGHTS, amapMarker, amapNavigation, xiaohongshuSearch, type Hotel, type Sight, type Todo, type TripDay } from "@/lib/data";
 import { beijingDate, daysUntilTrip, defaultTripDate, TRIP_END, TRIP_START } from "@/lib/date";
 import { DEMO_EXPENSES, FAMILY_A, FAMILY_B, PEOPLE, formatMoney, settle, type Expense, type Person } from "@/lib/ledger";
@@ -36,7 +37,7 @@ function DateStrip({ selected, onSelect }: { selected: string; onSelect: (id: st
 
 function NavButton({ href, children, className = "" }: { href: string | null; children: React.ReactNode; className?: string }) {
   if (!href) return null;
-  return <a className={className} href={href} target="_blank" rel="noreferrer" onClick={(event) => event.stopPropagation()}>{children}</a>;
+  return <AmapLink className={className} href={href}>{children}</AmapLink>;
 }
 
 function Hero() {

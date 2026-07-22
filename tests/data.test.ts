@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DAYS, POINTS, SIGHTS, amapMarker, amapNavigation, navigationTarget } from "../lib/data";
+import { DAYS, POINTS, SIGHTS, amapDeepLink, amapMarker, amapNavigation, mobileAmapPlatform, navigationTarget } from "../lib/data";
 
 describe("迁移数据完整性", () => {
   it("包含 11 天、21 个景点，并只为已核对落点生成兼容导航", () => {
@@ -14,7 +14,7 @@ describe("迁移数据完整性", () => {
       }
       expect(link).toContain(`position=${target.lng},${target.lat}`);
       expect(link).toContain(`name=${encodeURIComponent(target.name)}`);
-      expect(link).toContain("src=beijiang-trip&coordinate=gaode&callnative=0");
+      expect(link).toContain("src=beijiang-trip&coordinate=gaode&callnative=1");
     }
     for (const day of DAYS) {
       for (const item of day.timeline.filter((entry) => entry.point)) {
@@ -41,9 +41,22 @@ describe("迁移数据完整性", () => {
 
   it("当天路线使用可在内置浏览器回落的高德链接", () => {
     const link = amapNavigation(DAYS[0].routePoints);
-    expect(link).toContain("src=beijiang-trip&coordinate=gaode&callnative=0");
+    expect(link).toContain("src=beijiang-trip&coordinate=gaode&callnative=1");
     expect(link).toContain(`from=${DAYS[0].routePoints[0].lng},${DAYS[0].routePoints[0].lat}`);
     expect(link).toContain(`to=${DAYS[0].routePoints.at(-1)!.lng},${DAYS[0].routePoints.at(-1)!.lat}`);
+  });
+
+  it("手机端导航按钮生成高德 App 的 iOS/Android Scheme", () => {
+    const marker = amapMarker(POINTS.sayram)!;
+    expect(amapDeepLink(marker, "ios")).toContain("iosamap://navi?sourceApplication=beijiang-trip");
+    expect(amapDeepLink(marker, "android")).toContain("androidamap://navi?sourceApplication=beijiang-trip");
+    expect(amapDeepLink(marker, "ios")).toContain(`lat=${navigationTarget(POINTS.sayram)!.lat}`);
+
+    const route = amapNavigation(DAYS[0].routePoints);
+    expect(amapDeepLink(route, "ios")).toContain("iosamap://path?");
+    expect(amapDeepLink(route, "android")).toContain("amapuri://route/plan/?");
+    expect(mobileAmapPlatform("Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)")).toBe("ios");
+    expect(mobileAmapPlatform("Mozilla/5.0 (Linux; Android 15; Pixel 9)")).toBe("android");
   });
 
   it("10 月 3 日至 8 日住宿全部保留待确认状态且 10 月 6 日双方案并存", () => {

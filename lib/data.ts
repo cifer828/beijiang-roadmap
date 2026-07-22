@@ -162,8 +162,8 @@ const sight = (
 
 export const SIGHTS: Record<string, Sight> = {
   ulungur: sight("ulungur", POINTS.ulungur, "ulungur.jpg", "1—2 小时", "价格待复核", "通常无需预约", "湖岸开阔，适合长途驾驶间隙散步休息。", "风大温差明显，勿在非开放区域下水。", "乌伦古湖黄金海岸"),
-  birch: sight("birch", POINTS.birch, "birch-park.jpg", "约 1 小时", "票价待复核", "通常现场入园", "额尔齐斯河畔的白桦林，作为阿勒泰傍晚机动行程。", "有余量再去，不挤压次日休息。", "阿勒泰桦林公园"),
-  ahe: sight("ahe", POINTS.ahe, "ahe-road.jpg", "沿途 5—7 小时", "通行通常免费", "当天 07:00 查看交通管制", "阿勒泰至禾木方向的景观公路，沿途雪山、河谷与森林。", "仅白天行驶；天气可能影响通行，正规位置停车。", "阿禾公路"),
+  birch: sight("birch", POINTS.birch, "birch-park-xhs.webp", "约 1 小时", "票价待复核", "通常现场入园", "额尔齐斯河畔的白桦林，作为阿勒泰傍晚机动行程。", "有余量再去，不挤压次日休息。", "阿勒泰桦林公园"),
+  ahe: sight("ahe", POINTS.ahe, "ahe-road-xhs.webp", "沿途 5—7 小时", "通行通常免费", "当天 07:00 查看交通管制", "阿勒泰至禾木方向的景观公路，沿途雪山、河谷与森林。", "仅白天行驶；天气可能影响通行，正规位置停车。", "阿禾公路"),
   hemuNew: sight("hemuNew", POINTS.hemuNew, "hemu-new.jpg", "约 1 小时", "以禾木景区票务为准", "随禾木景区实名购票", "民宿和餐饮较集中，可先办理入住与补给。", "国庆换乘排队可能严重超时。", "禾木新村"),
   hemuOld: sight("hemuOld", POINTS.hemuOld, "hemu-old.jpg", "约 1.5 小时", "以禾木景区票务为准", "随禾木景区实名购票", "图瓦木屋、村落道路与河谷景观集中区域。", "尊重居民生活，清晨和夜间控制音量。", "禾木老村"),
   bridge: sight("bridge", POINTS.bridge, "yuanjiang-bridge.jpg", "约 20 分钟", "村内步行节点", "无需单独预约", "禾木河边的步行节点，可连接村内散步路线。", "桥面湿滑时慢行，不翻越护栏。", "禾木援疆桥"),
@@ -176,7 +176,7 @@ export const SIGHTS: Record<string, Sight> = {
   baihaba: sight("baihaba", POINTS.baihaba, "baihaba.jpg", "约半天", "旺季基准 30 元/人；区间车另计", "确认边境通行证与景区交通", "边境村落、木屋与山谷景观，节奏适合慢游。", "边境通行要求必须节前复核。", "白哈巴村", KANAS_POLICY),
   wucaitan: sight("wucaitan", POINTS.wucaitan, "wucaitan.jpg", "1—2 小时", "价格待复核", "购买门票并核对停止售票", "额尔齐斯河畔雅丹地貌，晨间光线层次清晰。", "控制停留，为魔鬼城和长途驾驶留足时间。", "新疆五彩滩"),
   ghost: sight("ghost", POINTS.ghost, "ghost-city.jpg", "2—3 小时", "票价、区间车金额待复核", "核对末班车和停止售票时间", "大型风蚀雅丹群，尽量在日落前两小时抵达。", "游览后仍有夜间驾驶，17:30 左右评估是否提前离开。", "世界魔鬼城日落", GHOST_POLICY),
-  sayram: sight("sayram", POINTS.sayram, "sayram.jpg", "4—6 小时", "门票和自驾服务为动态票价，出发前复核", "官方渠道提前购买，确认入口、方向、时限和人数", "从东门进入、逆时针环湖，按天气选择停靠点。", "控制停留，避免太晚抵达伊宁。", "赛里木湖秋天", SAYRAM_POLICY),
+  sayram: sight("sayram", POINTS.sayram, "sayram-xhs.webp", "4—6 小时", "门票和自驾服务为动态票价，出发前复核", "官方渠道提前购买，确认入口、方向、时限和人数", "从东门进入、逆时针环湖，按天气选择停靠点。", "控制停留，避免太晚抵达伊宁。", "赛里木湖秋天", SAYRAM_POLICY),
   guozigou: sight("guozigou", POINTS.guozigou, "guozigou.jpg", "20—30 分钟", "免费", "无需预约", "果子沟峡谷与大桥景观，只在正规观景点短停。", "严禁在高速路肩或非正规位置停车。", "果子沟大桥"),
   teks: sight("teks", POINTS.teks, "teks.jpg", "2—3 小时", "城区免费，体验项目另计", "无需预约", "以八卦格局闻名的县城，可步行看街巷与本地餐饮。", "用餐与游览后再决定是否去喀拉峻。", "特克斯八卦城"),
   kalajun: sight("kalajun", POINTS.kalajun, "kalajun.jpg", "至少半天", "旧资料门票 80、观光车往返 90，均需节前复核", "出发前核对开放项目", "高山草原和峡谷景观，10 月已进入深秋。", "天气影响较大，过中午不勉强塞入完整景区。", "喀拉峻草原", KALAJUN_POLICY),
@@ -351,17 +351,49 @@ export function navigationTarget(point: Point): NavigationTarget | null {
   return point.navigation ?? point;
 }
 
+export type AmapPlatform = "ios" | "android";
+
 export function amapMarker(point: Point): string | null {
   const target = navigationTarget(point);
   if (!target) return null;
   const name = encodeURIComponent(target.name);
-  return `https://uri.amap.com/marker?position=${target.lng},${target.lat}&name=${name}&src=beijiang-trip&coordinate=gaode&callnative=0`;
+  return `https://uri.amap.com/marker?position=${target.lng},${target.lat}&name=${name}&src=beijiang-trip&coordinate=gaode&callnative=1`;
 }
 
 export function amapNavigation(points: Point[]): string {
   const from = points[0];
   const to = points[points.length - 1];
-  return `https://uri.amap.com/navigation?from=${from.lng},${from.lat},${encodeURIComponent(from.name)}&to=${to.lng},${to.lat},${encodeURIComponent(to.name)}&mode=car&policy=1&src=beijiang-trip&coordinate=gaode&callnative=0`;
+  return `https://uri.amap.com/navigation?from=${from.lng},${from.lat},${encodeURIComponent(from.name)}&to=${to.lng},${to.lat},${encodeURIComponent(to.name)}&mode=car&policy=1&src=beijiang-trip&coordinate=gaode&callnative=1`;
+}
+
+function parseCoordinate(value: string | null): { lng: string; lat: string; name: string } | null {
+  if (!value) return null;
+  const [lng, lat, ...nameParts] = value.split(",");
+  if (!lng || !lat) return null;
+  return { lng, lat, name: nameParts.join(",") };
+}
+
+export function mobileAmapPlatform(userAgent: string): AmapPlatform | null {
+  if (/iPhone|iPad|iPod/i.test(userAgent)) return "ios";
+  if (/Android|HarmonyOS|OpenHarmony/i.test(userAgent)) return "android";
+  return null;
+}
+
+export function amapDeepLink(webUrl: string, platform: AmapPlatform): string | null {
+  const url = new URL(webUrl);
+  const source = "beijiang-trip";
+  const position = parseCoordinate(url.searchParams.get("position"));
+  if (position) {
+    const name = url.searchParams.get("name") || position.name;
+    const scheme = platform === "ios" ? "iosamap://navi" : "androidamap://navi";
+    return `${scheme}?sourceApplication=${source}&poiname=${encodeURIComponent(name)}&lat=${position.lat}&lon=${position.lng}&dev=0&style=0`;
+  }
+
+  const from = parseCoordinate(url.searchParams.get("from"));
+  const to = parseCoordinate(url.searchParams.get("to"));
+  if (!from || !to) return null;
+  const query = `sourceApplication=${source}&sid=&slat=${from.lat}&slon=${from.lng}&sname=${encodeURIComponent(from.name)}&did=&dlat=${to.lat}&dlon=${to.lng}&dname=${encodeURIComponent(to.name)}&dev=0&t=0`;
+  return platform === "ios" ? `iosamap://path?${query}` : `amapuri://route/plan/?${query}`;
 }
 
 export function xiaohongshuSearch(term: string): string {

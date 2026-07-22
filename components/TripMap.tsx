@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import AmapLink from "@/components/AmapLink";
 import { amapMarker, amapNavigation, DAYS, FULL_ROUTE, type Point, type TripDay } from "@/lib/data";
 
 declare global {
@@ -183,7 +184,7 @@ export default function TripMap({ day, onChangeDay, onShowDay }: Props) {
               const href = amapMarker(point);
               const content = <><b>{String(index + 1).padStart(2, "0")}</b><span>{point.name}</span><em>{href ? "导航 ↗" : "沿途路段"}</em></>;
               return href ? (
-                <a key={`${point.name}-${index}`} href={href} target="_blank" rel="noreferrer">{content}</a>
+                <AmapLink key={`${point.name}-${index}`} href={href}>{content}</AmapLink>
               ) : (
                 <div key={`${point.name}-${index}`}>{content}</div>
               );
@@ -210,7 +211,7 @@ export default function TripMap({ day, onChangeDay, onShowDay }: Props) {
         <p>{day.title} · {counts.hotels} 个住宿方案</p>
         <div className="map-stats"><b>景点 {counts.sights}</b><b>待办 {counts.todos}</b><b>{day.drive}</b></div>
         <div className="map-info-actions">
-          <a href={amapNavigation(day.routePoints)} target="_blank" rel="noreferrer">高德导航 ↗</a>
+          <AmapLink href={amapNavigation(day.routePoints)}>高德导航 ↗</AmapLink>
           <button type="button" onClick={onShowDay}>查看当天详情</button>
         </div>
       </div>
