@@ -1,7 +1,9 @@
 import type { Expense } from "./ledger";
 
-const API_URL = process.env.NEXT_PUBLIC_CLOUDBASE_API_URL?.replace(/\/$/, "");
+const API_URL = (process.env.NEXT_PUBLIC_TRIP_API_URL || process.env.NEXT_PUBLIC_CLOUDBASE_API_URL)?.replace(/\/$/, "");
 export const TRIP_ID = "northern-xinjiang-2026";
+const EXPENSE_CACHE_KEY = "bj-expenses-cache-v2";
+const CHECKLIST_CACHE_KEY = "bj-checklist-cache-v2";
 
 export interface ExpenseStore {
   load(): Promise<Expense[] | null>;
@@ -11,7 +13,19 @@ export interface ExpenseStore {
 
 export interface ChecklistStore {
   load(): Promise<Record<string, boolean> | null>;
-  save(value: Record<string, boolean>): Promise<void>;
+  save(id: string, checked: boolean): Promise<void>;
+}
+
+function readCache<T>(key: string): T | null {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) as T : null;
+  } catch { return null; }
+}
+
+function writeCache(key: string, value: unknown) {
+  try { localStorage.setItem(key, JSON.stringify(value)); }
+  catch { /* 浏览器存储已满时仍以云端结果为准。 */ }
 }
 
 class LocalExpenseStore implements ExpenseStore {
@@ -37,22 +51,50 @@ class LocalExpenseStore implements ExpenseStore {
 class CloudExpenseStore implements ExpenseStore {
   constructor(private base: string) {}
   async load() {
-    const response = await fetch(`${this.base}/trips/${TRIP_ID}/expenses`, { cache: "no-store" });
-    if (!response.ok) throw new Error("共享账本读取失败");
-    return response.json() as Promise<Expense[]>;
+    try {
+      const response = await fetch(`${this.base}/expenses`, { cache: "no-store" });
+      if (!response.ok) throw new Error("共享账本读取失败");
+      const expenses = await response.json() as Expense[];
+      writeCache(EXPENSE_CACHE_KEY, expenses);
+      return expenses;
+    } catch (error) {
+      const cached = readCache<Expense[]>(EXPENSE_CACHE_KEY);
+      if (cached) return cached;
+      throw error;
+    }
   }
   async save(expense: Expense) {
-    const response = await fetch(`${this.base}/trips/${TRIP_ID}/expenses/${expense.id}`, {
+    const images = await Promise.all(expense.images.map(async (image) => {
+      if (!image.startsWith("data:")) return image;
+      const blob = await (await fetch(image)).blob();
+      const imageId = crypto.randomUUID();
+      const upload = await fetch(`${this.base}/receipts/${expense.id}/${imageId}`, {
+        method: "PUT",
+        headers: { "content-type": blob.type || "image/jpeg" },
+        body: blob,
+      });
+      if (!upload.ok) throw new Error((await upload.json().catch(() => null))?.error || "消费凭证上传失败");
+      return (await upload.json() as { url: string }).url;
+    }));
+    const payload = { ...expense, images };
+    const response = await fetch(`${this.base}/expenses/${expense.id}`, {
       method: "PUT",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify(expense),
+      body: JSON.stringify(payload),
     });
     if (!response.ok) throw new Error("共享账本保存失败");
-    return response.json() as Promise<Expense>;
+    const saved = await response.json() as Expense;
+    const current = readCache<Expense[]>(EXPENSE_CACHE_KEY) ?? [];
+    writeCache(EXPENSE_CACHE_KEY, current.some((item) => item.id === saved.id)
+      ? current.map((item) => item.id === saved.id ? saved : item)
+      : [saved, ...current]);
+    return saved;
   }
   async remove(id: string) {
-    const response = await fetch(`${this.base}/trips/${TRIP_ID}/expenses/${id}`, { method: "DELETE" });
+    const response = await fetch(`${this.base}/expenses/${id}`, { method: "DELETE" });
     if (!response.ok) throw new Error("共享账本删除失败");
+    const current = readCache<Expense[]>(EXPENSE_CACHE_KEY) ?? [];
+    writeCache(EXPENSE_CACHE_KEY, current.filter((item) => item.id !== id));
   }
 }
 
@@ -62,25 +104,36 @@ class LocalChecklistStore implements ChecklistStore {
     const raw = localStorage.getItem(this.key);
     return raw ? (JSON.parse(raw) as Record<string, boolean>) : null;
   }
-  async save(value: Record<string, boolean>) {
-    localStorage.setItem(this.key, JSON.stringify(value));
+  async save(id: string, checked: boolean) {
+    const current = (await this.load()) ?? {};
+    localStorage.setItem(this.key, JSON.stringify({ ...current, [id]: checked }));
   }
 }
 
 class CloudChecklistStore implements ChecklistStore {
   constructor(private base: string) {}
   async load() {
-    const response = await fetch(`${this.base}/trips/${TRIP_ID}/checklist`, { cache: "no-store" });
-    if (!response.ok) throw new Error("共享清单读取失败");
-    return response.json() as Promise<Record<string, boolean>>;
+    try {
+      const response = await fetch(`${this.base}/checklist`, { cache: "no-store" });
+      if (!response.ok) throw new Error("共享清单读取失败");
+      const value = await response.json() as Record<string, boolean>;
+      writeCache(CHECKLIST_CACHE_KEY, value);
+      return value;
+    } catch (error) {
+      const cached = readCache<Record<string, boolean>>(CHECKLIST_CACHE_KEY);
+      if (cached) return cached;
+      throw error;
+    }
   }
-  async save(value: Record<string, boolean>) {
-    const response = await fetch(`${this.base}/trips/${TRIP_ID}/checklist`, {
+  async save(id: string, checked: boolean) {
+    const response = await fetch(`${this.base}/checklist/${encodeURIComponent(id)}`, {
       method: "PUT",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify(value),
+      body: JSON.stringify({ checked }),
     });
     if (!response.ok) throw new Error("共享清单保存失败");
+    const current = readCache<Record<string, boolean>>(CHECKLIST_CACHE_KEY) ?? {};
+    writeCache(CHECKLIST_CACHE_KEY, { ...current, [id]: checked });
   }
 }
 

@@ -6,6 +6,7 @@
 [build.environment]
   NETLIFY_NEXT_PLUGIN_SKIP = "true"
   NEXT_PUBLIC_AMAP_SERVICE_HOST = "/api/amap"
+  NEXT_PUBLIC_TRIP_API_URL = "/api/trip-data"
 
 [[headers]]
   for = "/*"

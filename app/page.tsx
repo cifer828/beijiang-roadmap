@@ -153,8 +153,7 @@ function TodoCard({ todo, checked, onToggle }: { todo: Todo; checked: boolean; o
   );
 }
 
-function TodayPage({ day, selected, setSelected, checklist, setChecklist }: { day: TripDay; selected: string; setSelected: (id: string) => void; checklist: Record<string, boolean>; setChecklist: (value: Record<string, boolean>) => void }) {
-  const toggle = (id: string) => setChecklist({ ...checklist, [id]: !checklist[id] });
+function TodayPage({ day, selected, setSelected, checklist, toggleChecklist }: { day: TripDay; selected: string; setSelected: (id: string) => void; checklist: Record<string, boolean>; toggleChecklist: (id: string) => void }) {
   return (
     <main className="today-page page-pad-bottom">
       <Hero />
@@ -167,7 +166,7 @@ function TodayPage({ day, selected, setSelected, checklist, setChecklist }: { da
           {day.sightIds.length ? <div className="sight-list">{day.sightIds.map((id, index) => <SightCard key={id} sight={SIGHTS[id]} index={index} />)}</div> : <div className="empty-card card">今天没有安排景点，重点是交通和休息。</div>}
         </section>
         {day.hotels.length > 0 && <section className="content-section"><SectionTitle title="今晚住宿" count={`${day.hotels.length} 套`} /><div className="hotel-list">{day.hotels.map((hotel) => <HotelCard key={hotel.id} hotel={hotel} />)}</div></section>}
-        <section className="content-section"><SectionTitle title="全部待办" count={`${day.todos.length} 项`} /><div className="todo-list">{day.todos.map((todo) => <TodoCard key={todo.id} todo={todo} checked={Boolean(checklist[todo.id])} onToggle={() => toggle(todo.id)} />)}</div></section>
+        <section className="content-section"><SectionTitle title="全部待办" count={`${day.todos.length} 项`} /><div className="todo-list">{day.todos.map((todo) => <TodoCard key={todo.id} todo={todo} checked={Boolean(checklist[todo.id])} onToggle={() => toggleChecklist(todo.id)} />)}</div></section>
         <section className="content-section"><SectionTitle title="注意事项" /><div className="notes card">{day.cautions.map((note) => <p key={note}>{note}</p>)}</div></section>
         {day.suggestion && <aside className="suggestion"><span>行程建议</span><p>{day.suggestion}</p></aside>}
       </div>
@@ -189,15 +188,14 @@ function TripPage({ openDay }: { openDay: (id: string) => void }) {
   );
 }
 
-function ChecklistPage({ checklist, setChecklist }: { checklist: Record<string, boolean>; setChecklist: (value: Record<string, boolean>) => void }) {
+function ChecklistPage({ checklist, toggleChecklist }: { checklist: Record<string, boolean>; toggleChecklist: (id: string) => void }) {
   const all = [...BOOKING_CHECKLIST, ...FIXED_CHECKLIST];
   const completed = all.filter((todo) => checklist[todo.id]).length;
-  const toggle = (id: string) => setChecklist({ ...checklist, [id]: !checklist[id] });
   return (
     <main className="checklist-page standalone page-pad-bottom">
       <header className="page-header"><span>PRE-TRIP CHECK</span><h1>行前清单</h1><p>{completed}/{all.length} 已完成 · {isCloudMode ? "四人看到同一份云端清单" : "当前保存在本机，部署后四人共享"}</p><div className="progress"><i style={{ width: `${all.length ? completed / all.length * 100 : 0}%` }} /></div></header>
-      <section><SectionTitle title="预订与预约" count={`${BOOKING_CHECKLIST.length} 项`} /><div className="todo-list">{BOOKING_CHECKLIST.map((todo) => <TodoCard key={todo.id} todo={todo} checked={Boolean(checklist[todo.id])} onToggle={() => toggle(todo.id)} />)}</div></section>
-      <section><SectionTitle title="证件、车辆与装备" count={`${FIXED_CHECKLIST.length} 项`} /><div className="todo-list">{FIXED_CHECKLIST.map((todo) => <TodoCard key={todo.id} todo={todo} checked={Boolean(checklist[todo.id])} onToggle={() => toggle(todo.id)} />)}</div></section>
+      <section><SectionTitle title="预订与预约" count={`${BOOKING_CHECKLIST.length} 项`} /><div className="todo-list">{BOOKING_CHECKLIST.map((todo) => <TodoCard key={todo.id} todo={todo} checked={Boolean(checklist[todo.id])} onToggle={() => toggleChecklist(todo.id)} />)}</div></section>
+      <section><SectionTitle title="证件、车辆与装备" count={`${FIXED_CHECKLIST.length} 项`} /><div className="todo-list">{FIXED_CHECKLIST.map((todo) => <TodoCard key={todo.id} todo={todo} checked={Boolean(checklist[todo.id])} onToggle={() => toggleChecklist(todo.id)} />)}</div></section>
       <aside className="last-day-card"><span>临行前 24 小时</span><h2>再核对一次</h2><p>天气、道路封闭、景区开放、预约状态、航班动态与租车联系人。</p></aside>
     </main>
   );
@@ -209,18 +207,23 @@ function fileToCompressedJpeg(file: File): Promise<string> {
     const url = URL.createObjectURL(file);
     image.onload = () => {
       URL.revokeObjectURL(url);
-      const scale = Math.min(1, 1600 / Math.max(image.width, image.height));
       const canvas = document.createElement("canvas");
-      canvas.width = Math.round(image.width * scale);
-      canvas.height = Math.round(image.height * scale);
-      canvas.getContext("2d")?.drawImage(image, 0, 0, canvas.width, canvas.height);
-      let quality = 0.78;
-      let data = canvas.toDataURL("image/jpeg", quality);
-      while (data.length * 0.75 > 1.7 * 1024 * 1024 && quality > 0.35) {
-        quality -= 0.08;
-        data = canvas.toDataURL("image/jpeg", quality);
+      const context = canvas.getContext("2d");
+      if (!context) { reject(new Error("浏览器无法处理图片")); return; }
+      let scale = Math.min(1, 1400 / Math.max(image.width, image.height));
+      let data = "";
+      for (let resize = 0; resize < 5; resize += 1) {
+        canvas.width = Math.max(1, Math.round(image.width * scale));
+        canvas.height = Math.max(1, Math.round(image.height * scale));
+        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+        for (let quality = 0.8; quality >= 0.38; quality -= 0.08) {
+          data = canvas.toDataURL("image/jpeg", quality);
+          if (data.length * 0.75 <= 820 * 1024) { resolve(data); return; }
+        }
+        scale *= 0.78;
       }
-      resolve(data);
+      if (data) resolve(data);
+      else reject(new Error("图片压缩失败"));
     };
     image.onerror = () => { URL.revokeObjectURL(url); reject(new Error("图片读取失败")); };
     image.src = url;
@@ -290,13 +293,13 @@ function LedgerPage({ identity, setIdentity, expenses, setExpenses }: { identity
   };
   return (
     <main className="ledger-page page-pad-bottom">
-      <header className="ledger-hero"><span>TWO-FAMILY LEDGER</span><button type="button" onClick={() => setIdentity(null)}>{identity ? `${identity}⌄` : "选择身份⌄"}</button><h1>旅行记账</h1><small>团队累计消费</small><strong>{formatMoney(result.total)}</strong><p>{isCloudMode ? "共享账本每 5 秒自动同步" : "当前为本机预览数据；部署云端后自动切换为四人共享版本"}</p></header>
+      <header className="ledger-hero"><span>TWO-FAMILY LEDGER</span><button type="button" onClick={() => setIdentity(null)}>{identity ? `${identity}⌄` : "选择身份⌄"}</button><h1>旅行记账</h1><small>团队累计消费</small><strong>{formatMoney(result.total)}</strong><p>{isCloudMode ? "共享账本自动同步，弱网时保留最近数据" : "当前为本机预览数据；部署云端后自动切换为四人共享版本"}</p></header>
       {!identity ? (
         <section className="identity-card card"><span>WHO ARE YOU?</span><h2>选择“我是谁”</h2><p>不注册账号，只在这台手机上记住选择。</p><div>{PEOPLE.map((person) => <button key={person} type="button" onClick={() => setIdentity(person)}><b>{person}</b><small>{person === "闫寒" || person === "刘一帆" ? FAMILY_A : FAMILY_B}</small></button>)}</div></section>
       ) : (
         <div className="ledger-content">
           {error && <p className="form-error">{error}</p>}
-          <section className="settlement card"><div className="settlement-title"><h2>家庭结算</h2><span>{isCloudMode ? "每 5 秒同步" : "本机数据"}</span></div>
+          <section className="settlement card"><div className="settlement-title"><h2>家庭结算</h2><span>{isCloudMode ? "云端共享" : "本机数据"}</span></div>
             <div className="family-grid"><article><span>{FAMILY_A}</span><b>已付 {formatMoney(result.paidA)}</b><small>应承担 {formatMoney(result.owedA)}</small></article><article><span>{FAMILY_B}</span><b>已付 {formatMoney(result.paidB)}</b><small>应承担 {formatMoney(result.owedB)}</small></article></div>
             <div className="transfer"><span>最简平账 · 最多一笔</span>{result.transfer ? <><b>{result.transfer.from} → {result.transfer.to}</b><strong>{formatMoney(result.transfer.amountCents)}</strong></> : <b>两家已经结清</b>}</div>
           </section>
@@ -333,22 +336,38 @@ export default function Home() {
 
   useEffect(() => {
     if (!isCloudMode || !hydrated) return;
-    const timer = window.setInterval(() => expenseStore.load().then((stored) => stored && setExpenses(stored)).catch(() => undefined), 5000);
-    return () => window.clearInterval(timer);
-  }, [hydrated]);
+    const refresh = () => {
+      if (tab === "ledger") expenseStore.load().then((stored) => stored && setExpenses(stored)).catch(() => undefined);
+      if (tab === "today" || tab === "checklist") checklistStore.load().then((stored) => stored && setChecklistState(stored)).catch(() => undefined);
+    };
+    const refreshVisible = () => { if (document.visibilityState === "visible") refresh(); };
+    refresh();
+    const timer = window.setInterval(refresh, 15_000);
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", refreshVisible);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", refreshVisible);
+    };
+  }, [hydrated, tab]);
 
   const setSelected = (id: string) => { setSelectedState(id); if (hydrated) localStorage.setItem("bj-selected-date", id); };
-  const setChecklist = (value: Record<string, boolean>) => { setChecklistState(value); checklistStore.save(value).catch(() => undefined); };
+  const toggleChecklist = (id: string) => {
+    const checked = !checklist[id];
+    setChecklistState({ ...checklist, [id]: checked });
+    checklistStore.save(id, checked).catch(() => undefined);
+  };
   const setIdentity = (person: Person | null) => { setIdentityState(person); if (person) localStorage.setItem("bj-identity", person); else localStorage.removeItem("bj-identity"); };
   const day = DAYS.find((item) => item.id === selected) ?? DAYS[0];
   const showDay = (id = selected) => { setSelected(id); setTab("today"); requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "smooth" })); };
 
   return (
     <div className="app-shell">
-      {tab === "today" && <TodayPage day={day} selected={selected} setSelected={setSelected} checklist={checklist} setChecklist={setChecklist} />}
+      {tab === "today" && <TodayPage day={day} selected={selected} setSelected={setSelected} checklist={checklist} toggleChecklist={toggleChecklist} />}
       {tab === "trip" && <TripPage openDay={showDay} />}
       {tab === "map" && <TripMap day={day} onChangeDay={setSelected} onShowDay={() => showDay()} />}
-      {tab === "checklist" && <ChecklistPage checklist={checklist} setChecklist={setChecklist} />}
+      {tab === "checklist" && <ChecklistPage checklist={checklist} toggleChecklist={toggleChecklist} />}
       {tab === "ledger" && <LedgerPage identity={identity} setIdentity={setIdentity} expenses={expenses} setExpenses={setExpenses} />}
       <nav className="bottom-nav">{TAB_ITEMS.map((item) => <button key={item.id} type="button" className={tab === item.id ? "active" : ""} onClick={() => { setTab(item.id); window.scrollTo({ top: 0, behavior: "auto" }); }}><i>{item.icon}</i><span>{item.label}</span></button>)}</nav>
     </div>
