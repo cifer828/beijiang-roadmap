@@ -162,6 +162,15 @@ a { color: inherit; text-decoration: none; }
 .progress { height: 7px; margin-top: 15px; overflow: hidden; border-radius: 8px; background: #e5e9e5; }
 .progress i { display: block; height: 100%; border-radius: inherit; background: var(--orange); transition: width .2s; }
 .checklist-page section + section { margin-top: 26px; }
+.cloud-gate-card { margin: 16px 14px; padding: 22px 16px; }
+.cloud-gate-card > i { display: inline-flex; padding: 6px 9px; border-radius: 999px; color: #315c4a; background: #e8f0eb; font-size: 9px; font-style: normal; font-weight: 700; }
+.cloud-gate-card h2 { margin: 16px 0 7px; font-size: 21px; font-weight: 500; }
+.cloud-gate-card > p { margin: 0 0 18px; color: #818b85; font-size: 10px; line-height: 1.7; }
+.cloud-gate-card label { display: flex; flex-direction: column; gap: 7px; color: #66716b; font-size: 9px; }
+.cloud-gate-card input { width: 100%; padding: 13px; border: 1px solid #dce3de; border-radius: 11px; outline: 0; background: white; font-size: 14px; letter-spacing: 1px; }
+.cloud-gate-card input:focus { border-color: #789486; box-shadow: 0 0 0 3px rgba(49,92,74,.1); }
+.cloud-gate-card .primary-button { width: 100%; margin-top: 13px; }
+.sync-message { position: fixed; z-index: 40; left: 50%; bottom: calc(80px + env(safe-area-inset-bottom)); width: min(calc(100% - 28px), 492px); padding: 11px 13px; transform: translateX(-50%); border: 0; border-radius: 12px; color: #fff; background: #9e4c3c; box-shadow: 0 8px 24px rgba(79,33,25,.25); font-size: 10px; text-align: left; cursor: pointer; }
 .last-day-card { margin-top: 12px; }
 
 .ledger-page { min-height: 100dvh; }

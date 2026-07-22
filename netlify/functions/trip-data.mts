@@ -1,5 +1,5 @@
 import { getStore } from "@netlify/blobs";
-import { createHash } from "node:crypto";
+import { createHash, timingSafeEqual } from "node:crypto";
 import { DEMO_EXPENSES, type Expense } from "../../lib/ledger";
 import { MAX_RECEIPT_BYTES, isSafeId, receiptKeyFromUrl, validateExpense } from "../../lib/cloud-model";
 
@@ -8,6 +8,7 @@ const EXPENSE_PREFIX = "expenses/";
 const CHECKLIST_PREFIX = "checklist/";
 const RECEIPT_PREFIX = "receipts/";
 const INITIALIZED_KEY = "meta/expenses-initialized";
+const SESSION_COOKIE = "bj_trip_session";
 
 const store = () => getStore({ name: STORE_NAME, consistency: "strong" });
 
@@ -27,6 +28,48 @@ function sameOrigin(request: Request) {
   if (!origin) return true;
   try { return new URL(origin).host === new URL(request.url).host; }
   catch { return false; }
+}
+
+function digest(value: string) {
+  return createHash("sha256").update(value).digest();
+}
+
+function sessionValue() {
+  const secret = process.env.TRIP_ACCESS_CODE;
+  return secret ? digest(`beijiang-session:${secret}`).toString("hex") : null;
+}
+
+function cookieValue(request: Request, name: string) {
+  const cookie = request.headers.get("cookie") ?? "";
+  for (const pair of cookie.split(";")) {
+    const [key, ...value] = pair.trim().split("=");
+    if (key === name) return decodeURIComponent(value.join("="));
+  }
+  return null;
+}
+
+function isAuthorized(request: Request) {
+  const expected = sessionValue();
+  if (!expected) return true;
+  const actual = cookieValue(request, SESSION_COOKIE);
+  if (!actual || actual.length !== expected.length) return false;
+  return timingSafeEqual(Buffer.from(actual), Buffer.from(expected));
+}
+
+async function handleSession(request: Request) {
+  const secret = process.env.TRIP_ACCESS_CODE;
+  if (request.method === "GET") return json({ authenticated: isAuthorized(request) });
+  if (request.method !== "POST") return json({ error: "不支持的请求方式" }, 405, { allow: "GET, POST" });
+  const body = await request.json().catch(() => null) as { code?: unknown } | null;
+  if (!secret || typeof body?.code !== "string" || body.code.length > 64) return json({ error: "同行口令不正确" }, 401);
+  const actual = digest(body.code);
+  const expected = digest(secret);
+  if (!timingSafeEqual(actual, expected)) return json({ error: "同行口令不正确" }, 401);
+  const value = sessionValue()!;
+  const secure = new URL(request.url).protocol === "https:" ? "; Secure" : "";
+  return json({ authenticated: true }, 200, {
+    "set-cookie": `${SESSION_COOKIE}=${encodeURIComponent(value)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=7776000${secure}`,
+  });
 }
 
 function parts(request: Request) {
@@ -145,7 +188,9 @@ export default async function handler(request: Request) {
   try {
     if (request.method !== "GET" && !sameOrigin(request)) return json({ error: "拒绝跨站写入" }, 403);
     const route = parts(request);
-    if (route[0] === "health" && request.method === "GET") return json({ ok: true, storage: "netlify-blobs" });
+    if (route[0] === "health" && request.method === "GET") return json({ ok: true, storage: "netlify-blobs", protected: Boolean(process.env.TRIP_ACCESS_CODE) });
+    if (route[0] === "session") return await handleSession(request);
+    if (!isAuthorized(request)) return json({ error: "请输入同行口令后继续" }, 401);
     if (route[0] === "expenses") return await handleExpenses(request, route);
     if (route[0] === "checklist") return await handleChecklist(request, route);
     if (route[0] === "receipts") return await handleReceipts(request, route);

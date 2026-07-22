@@ -6,9 +6,10 @@ import AmapLink from "@/components/AmapLink";
 import { BOOKING_CHECKLIST, DAYS, FIXED_CHECKLIST, SIGHTS, amapMarker, amapNavigation, xiaohongshuSearch, type Hotel, type Sight, type Todo, type TripDay } from "@/lib/data";
 import { beijingDate, daysUntilTrip, defaultTripDate, TRIP_END, TRIP_START } from "@/lib/date";
 import { DEMO_EXPENSES, FAMILY_A, FAMILY_B, PEOPLE, formatMoney, settle, type Expense, type Person } from "@/lib/ledger";
-import { checklistStore, expenseStore, isCloudMode } from "@/lib/storage";
+import { checkCloudSession, checklistStore, expenseStore, isCloudMode, unlockCloudSession } from "@/lib/storage";
 
 type Tab = "today" | "trip" | "map" | "checklist" | "ledger";
+type CloudAccess = "checking" | "locked" | "ready";
 const TAB_ITEMS: { id: Tab; label: string; icon: string }[] = [
   { id: "today", label: "今日", icon: "●" },
   { id: "trip", label: "行程", icon: "≡" },
@@ -201,6 +202,31 @@ function ChecklistPage({ checklist, toggleChecklist }: { checklist: Record<strin
   );
 }
 
+function CloudGate({ checking, onUnlock }: { checking: boolean; onUnlock: (code: string) => Promise<void> }) {
+  const [code, setCode] = useState("");
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const submit = async (event: FormEvent) => {
+    event.preventDefault();
+    if (!code.trim()) { setError("请输入同行口令"); return; }
+    setSubmitting(true); setError("");
+    try { await onUnlock(code.trim()); }
+    catch (reason) { setError(reason instanceof Error ? reason.message : "同行口令验证失败"); }
+    finally { setSubmitting(false); }
+  };
+  return (
+    <main className="cloud-gate standalone page-pad-bottom">
+      <header className="page-header"><span>PRIVATE TRIP SPACE</span><h1>同行数据已保护</h1><p>清单、消费金额和凭证图片仅向同行成员开放。</p></header>
+      <form className="cloud-gate-card card" onSubmit={submit}>
+        <i>四人共享</i><h2>{checking ? "正在连接共享存储…" : "输入同行口令"}</h2><p>只需在这台手机输入一次，90 天内保持登录；不需要注册账号。</p>
+        {error && <p className="form-error">{error}</p>}
+        <label>同行口令<input type="password" autoComplete="current-password" value={code} onChange={(event) => setCode(event.target.value)} disabled={checking || submitting} placeholder="请输入口令" /></label>
+        <button className="primary-button" disabled={checking || submitting}>{submitting ? "验证中…" : "进入共享清单与账本"}</button>
+      </form>
+    </main>
+  );
+}
+
 function fileToCompressedJpeg(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const image = new Image();
@@ -320,22 +346,33 @@ export default function Home() {
   const [identity, setIdentityState] = useState<Person | null>(null);
   const [expenses, setExpenses] = useState<Expense[]>(DEMO_EXPENSES);
   const [hydrated, setHydrated] = useState(false);
+  const [cloudAccess, setCloudAccess] = useState<CloudAccess>(isCloudMode ? "checking" : "ready");
+  const [syncMessage, setSyncMessage] = useState("");
 
   useEffect(() => {
     const savedDate = localStorage.getItem("bj-selected-date");
     setSelectedState(DAYS.some((day) => day.id === savedDate) ? savedDate! : defaultTripDate());
-    checklistStore.load().then((savedChecklist) => { if (savedChecklist) setChecklistState(savedChecklist); }).catch(() => undefined);
     const savedIdentity = localStorage.getItem("bj-identity") as Person | null;
     if (savedIdentity && PEOPLE.includes(savedIdentity)) setIdentityState(savedIdentity);
-    expenseStore.load().then((stored) => {
-      if (stored) setExpenses(stored);
-      else if (!isCloudMode) localStorage.setItem("bj-expenses-v1", JSON.stringify(DEMO_EXPENSES));
-    }).catch(() => undefined);
-    setHydrated(true);
+    const loadSharedData = () => Promise.all([
+      checklistStore.load().then((savedChecklist) => { if (savedChecklist) setChecklistState(savedChecklist); }),
+      expenseStore.load().then((stored) => {
+        if (stored) setExpenses(stored);
+        else if (!isCloudMode) localStorage.setItem("bj-expenses-v1", JSON.stringify(DEMO_EXPENSES));
+      }),
+    ]).catch(() => undefined);
+    if (isCloudMode) {
+      checkCloudSession().then(async (authenticated) => {
+        setCloudAccess(authenticated ? "ready" : "locked");
+        if (authenticated) await loadSharedData();
+      }).catch(() => setCloudAccess("locked")).finally(() => setHydrated(true));
+    } else {
+      loadSharedData().finally(() => setHydrated(true));
+    }
   }, []);
 
   useEffect(() => {
-    if (!isCloudMode || !hydrated) return;
+    if (!isCloudMode || !hydrated || cloudAccess !== "ready") return;
     const refresh = () => {
       if (tab === "ledger") expenseStore.load().then((stored) => stored && setExpenses(stored)).catch(() => undefined);
       if (tab === "today" || tab === "checklist") checklistStore.load().then((stored) => stored && setChecklistState(stored)).catch(() => undefined);
@@ -350,25 +387,40 @@ export default function Home() {
       window.removeEventListener("focus", refresh);
       document.removeEventListener("visibilitychange", refreshVisible);
     };
-  }, [hydrated, tab]);
+  }, [cloudAccess, hydrated, tab]);
 
   const setSelected = (id: string) => { setSelectedState(id); if (hydrated) localStorage.setItem("bj-selected-date", id); };
   const toggleChecklist = (id: string) => {
+    if (isCloudMode && cloudAccess !== "ready") { setTab("checklist"); window.scrollTo({ top: 0 }); return; }
     const checked = !checklist[id];
     setChecklistState({ ...checklist, [id]: checked });
-    checklistStore.save(id, checked).catch(() => undefined);
+    checklistStore.save(id, checked).then(() => setSyncMessage("")).catch(() => {
+      setChecklistState((current) => ({ ...current, [id]: !checked }));
+      setSyncMessage("共享清单保存失败，请检查网络后重试");
+    });
   };
   const setIdentity = (person: Person | null) => { setIdentityState(person); if (person) localStorage.setItem("bj-identity", person); else localStorage.removeItem("bj-identity"); };
   const day = DAYS.find((item) => item.id === selected) ?? DAYS[0];
   const showDay = (id = selected) => { setSelected(id); setTab("today"); requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "smooth" })); };
+  const unlock = async (code: string) => {
+    await unlockCloudSession(code);
+    const [savedChecklist, storedExpenses] = await Promise.all([checklistStore.load(), expenseStore.load()]);
+    if (savedChecklist) setChecklistState(savedChecklist);
+    if (storedExpenses) setExpenses(storedExpenses);
+    setCloudAccess("ready");
+  };
+  const gated = isCloudMode && (tab === "checklist" || tab === "ledger") && cloudAccess !== "ready";
 
   return (
     <div className="app-shell">
-      {tab === "today" && <TodayPage day={day} selected={selected} setSelected={setSelected} checklist={checklist} toggleChecklist={toggleChecklist} />}
-      {tab === "trip" && <TripPage openDay={showDay} />}
-      {tab === "map" && <TripMap day={day} onChangeDay={setSelected} onShowDay={() => showDay()} />}
-      {tab === "checklist" && <ChecklistPage checklist={checklist} toggleChecklist={toggleChecklist} />}
-      {tab === "ledger" && <LedgerPage identity={identity} setIdentity={setIdentity} expenses={expenses} setExpenses={setExpenses} />}
+      {gated ? <CloudGate checking={cloudAccess === "checking"} onUnlock={unlock} /> : <>
+        {tab === "today" && <TodayPage day={day} selected={selected} setSelected={setSelected} checklist={checklist} toggleChecklist={toggleChecklist} />}
+        {tab === "trip" && <TripPage openDay={showDay} />}
+        {tab === "map" && <TripMap day={day} onChangeDay={setSelected} onShowDay={() => showDay()} />}
+        {tab === "checklist" && <ChecklistPage checklist={checklist} toggleChecklist={toggleChecklist} />}
+        {tab === "ledger" && <LedgerPage identity={identity} setIdentity={setIdentity} expenses={expenses} setExpenses={setExpenses} />}
+      </>}
+      {syncMessage && <button className="sync-message" type="button" onClick={() => setSyncMessage("")}>{syncMessage} ×</button>}
       <nav className="bottom-nav">{TAB_ITEMS.map((item) => <button key={item.id} type="button" className={tab === item.id ? "active" : ""} onClick={() => { setTab(item.id); window.scrollTo({ top: 0, behavior: "auto" }); }}><i>{item.icon}</i><span>{item.label}</span></button>)}</nav>
     </div>
   );
