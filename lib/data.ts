@@ -68,7 +68,7 @@ export const POINTS: Record<string, Point> = {
   urumqiHotel: { name: "桔子乌鲁木齐天山国际机场砂之船奥莱酒店", lng: 87.449301, lat: 43.895188 },
   ulungur: { name: "乌伦古湖黄金海岸景区", lng: 87.412829, lat: 47.244158 },
   altay: { name: "阿勒泰市", lng: 88.1396, lat: 47.8484 },
-  altayHotel: { name: "阿勒泰壹号名宿", lng: 88.135913, lat: 47.83284 },
+  altayHotel: { name: "阿勒泰壹号民宿", lng: 88.135913, lat: 47.83284 },
   birch: { name: "阿勒泰桦林公园", lng: 88.122383, lat: 47.864343 },
   ahe: { name: "阿禾公路", lng: 87.532, lat: 48.164, navigation: false },
   hemuTransfer: { name: "禾木入口服务区（换乘中心）", lng: 87.462861, lat: 48.576179 },
@@ -187,10 +187,10 @@ export const SIGHTS: Record<string, Sight> = {
 const hotel = (data: Omit<Hotel, "image"> & { image: string }): Hotel => ({ ...data, image: `/images/hotels/${data.image}` });
 
 const urumqiFirst = hotel({ id: "urumqi-first", ...POINTS.urumqiHotel, image: "urumqi-orange.jpg", platform: "华住会", status: "已预订", room: "高级大床房 2 间", checkIn: "9/29 14:00 后", checkOut: "9/30 16:00 前", amount: "¥498.90", order: "入住码 FBABMD", contact: "张** 177****2580", cancel: "9/28 23:00 前免费取消", address: "头屯河区豫清路1329号产业培育基地B地块6号楼3单元（一层至七层）" });
-const altayHotel = hotel({ id: "altay", ...POINTS.altayHotel, name: "阿勒泰壹号名宿（五百里风情街店）", image: "altay-one.jpg", platform: "美团", status: "已预订", room: "大床房", checkIn: "9/30 14:00 后", checkOut: "10/1 12:00 前（出发前复核）", amount: "金额待补", address: "阿勒泰市五百里风情街二期二号楼二层" });
+const altayHotel = hotel({ id: "altay", ...POINTS.altayHotel, name: "阿勒泰壹号民宿（五百里风情街店）", image: "altay-one.jpg", platform: "美团", status: "已预订", room: "大床房 2 间", checkIn: "9/30 14:00 后", checkOut: "10/1 12:00 前（出发前复核）", amount: "¥798（¥399 × 2 间）", address: "阿勒泰市五百里风情街二期二号楼二层" });
 const hemuHotel = hotel({ id: "hemu", ...POINTS.hemuHotel, name: "纳兰禾谷民宿（禾木风景区店）", image: "hemu-nalan.jpg", platform: "携程", status: "已预订", room: "Field·文艺田园复古 Loft 家庭独栋别墅 1 间", checkIn: "10/1 12:00 后", checkOut: "10/2 12:00 前", amount: "¥2,560.19", order: "订单 1128149389793495", cancel: "9/24 23:59 前免费取消", address: "新疆布尔津禾木喀纳斯乡禾木村 343 号" });
-const baihabaHotel = hotel({ id: "baihaba", ...POINTS.baihabaHotel, name: "牧峰居民宿（白哈巴风景区店）", image: "baihaba-mufeng.jpg", platform: "美团", status: "已预订", room: "大床房", checkIn: "10/2 14:00 后", checkOut: "10/3（时间待确认）", amount: "金额待补", address: "哈巴河县白哈巴村教育路 63 号" });
-const buerjinHotel = hotel({ id: "buerjin", ...POINTS.buerjinHotel, name: "阿肯的小木屋（布尔津县中俄老码头风情街店）", image: "buerjin-akken.jpg", platform: "飞猪", status: "保底预订 · 待确认", room: "库米拉·独栋木屋家庭房 1 间（含早）", checkIn: "10/3 14:00 后", checkOut: "10/4 12:00 前", amount: "金额待补", address: "布尔津河滨路融和民俗风情园木屋 1 号商铺" });
+const baihabaHotel = hotel({ id: "baihaba", ...POINTS.baihabaHotel, name: "牧峰居民宿（白哈巴风景区店）", image: "baihaba-mufeng.jpg", platform: "美团", status: "已预订", room: "客房 2 间", checkIn: "10/2 14:00 后", checkOut: "10/3（时间待确认）", amount: "¥1,904（¥957 + ¥947）", address: "哈巴河县白哈巴村教育路 63 号" });
+const buerjinHotel = hotel({ id: "buerjin", ...POINTS.buerjinHotel, name: "阿肯的小木屋（布尔津县中俄老码头风情街店）", image: "buerjin-akken.jpg", platform: "飞猪", status: "保底预订 · 待确认", room: "库米拉·独栋木屋家庭房 1 间（4 人入住，含早）", checkIn: "10/3 14:00 后", checkOut: "10/4 12:00 前", amount: "¥947", address: "布尔津河滨路融和民俗风情园木屋 1 号商铺" });
 const kuitunHotel = hotel({ id: "kuitun", ...POINTS.kuitunHotel, name: "星程奎屯站团结南街酒店", image: "kuitun-starway.jpg", platform: "华住会", status: "保底预订 · 待确认", room: "舒压·高级大床房 2 间", checkIn: "10/4 14:00 后", checkOut: "10/5 16:00 前", amount: "¥451.98", order: "入住码 DKN229", contact: "张** 177****2580", cancel: "10/3 23:00 前免费取消", address: "市区迎宾园团结南街 31 幢 21 号、72 幢、73 幢" });
 const yiningHotel = hotel({ id: "yining", ...POINTS.yiningHotel, name: "桔子伊宁万容广场酒店", image: "yining-orange.jpg", platform: "华住会", status: "保底预订 · 待确认", room: "高级大床房 2 间", checkIn: "10/5 14:00 后", checkOut: "10/6 16:00 前", amount: "¥608.38", order: "入住码 DCA22S", contact: "张** 177****2580", cancel: "10/4 23:00 前免费取消", address: "伊宁市山东路心悦龙庭 446 号 A 座 1 号楼" });
 const teksHotel = hotel({ id: "teks", ...POINTS.teksHotel, name: "全季特克斯九宫新城酒店", image: "teks-ji.jpg", platform: "华住会", plan: "Plan A", status: "保底预订 · 待确认", room: "商务大床房 2 间", checkIn: "10/6 14:00 后", checkOut: "10/7 16:00 前", amount: "¥498.90", order: "入住码 DKW254", contact: "张** 186****2650", cancel: "10/5 23:00 前免费取消", address: "九宫新城经六路综合商业广场 A1 栋" });

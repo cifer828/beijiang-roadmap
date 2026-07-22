@@ -68,4 +68,11 @@ describe("迁移数据完整性", () => {
     expect(october6.hotels.map((hotel) => hotel.plan)).toEqual(["Plan A", "Plan B"]);
     expect(october6.todos.some((todo) => todo.title.includes("取消另一间"))).toBe(true);
   });
+
+  it("补充三笔住宿订单的房间数量和总金额", () => {
+    const hotels = DAYS.flatMap((day) => day.hotels);
+    expect(hotels.find((hotel) => hotel.id === "altay")).toMatchObject({ room: "大床房 2 间", amount: "¥798（¥399 × 2 间）" });
+    expect(hotels.find((hotel) => hotel.id === "baihaba")).toMatchObject({ room: "客房 2 间", amount: "¥1,904（¥957 + ¥947）" });
+    expect(hotels.find((hotel) => hotel.id === "buerjin")).toMatchObject({ room: "库米拉·独栋木屋家庭房 1 间（4 人入住，含早）", amount: "¥947" });
+  });
 });
