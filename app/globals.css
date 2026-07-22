@@ -251,8 +251,8 @@ a { color: inherit; text-decoration: none; }
 .map-dates button { flex: 0 0 auto; min-width: 45px; padding: 9px 9px; border: 0; border-radius: 10px; background: rgba(255,255,255,.93); box-shadow: 0 4px 12px rgba(20,40,32,.08); font-size: 9px; cursor: pointer; }
 .map-dates button.active { color: white; background: var(--pine); }
 .map-toolbar { position: absolute; z-index: 50; top: 54px; right: 10px; left: 10px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 7px; }
-.map-legend { min-height: 36px; padding: 9px 8px; color: #68756e; font-size: 8px; text-align: center; white-space: nowrap; }
-.map-legend i { display: inline-block; width: 19px; height: 3px; margin-right: 6px; border-radius: 3px; background: var(--orange); vertical-align: middle; }
+.map-legend { justify-self: center; width: max-content; min-height: 30px; padding: 7px 10px; border-radius: 999px; display: inline-flex; align-items: center; color: #68756e; font-size: 8px; line-height: 1; text-align: center; white-space: nowrap; }
+.map-legend i { flex: 0 0 auto; width: 14px; height: 3px; margin-right: 5px; border-radius: 3px; background: var(--orange); }
 .map-locate { padding: 10px 12px; font-size: 10px; cursor: pointer; }
 .map-toolbar button:disabled { opacity: .5; }
 .map-message { position: absolute; z-index: 55; left: 50%; bottom: 220px; padding: 8px 11px; transform: translateX(-50%); border-radius: 10px; color: white; background: rgba(23,59,48,.88); font-size: 9px; white-space: nowrap; }
