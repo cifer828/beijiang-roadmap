@@ -1,0 +1,24 @@
+node_modules/
+.next/
+out/
+.env*
+!.env.example
+*.log
+.DS_Store
+coverage/
+*.tsbuildinfo
+
+# Migration source package (copied assets live in public/)
+图片素材/
+页面截图/
+迁移包/
+北疆自驾助手-完整迁移说明.md
+
+# Tencent Cloud EdgeOne
+.env
+.edgeone/*
+.tef_dist/*
+
+# Netlify
+.netlify/
+  

@@ -1,0 +1,29 @@
+{
+  "name": "northern-xinjiang-road-trip",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "build:static": "node scripts/build-static.mjs",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "geist": "^1.7.2",
+    "next": "latest",
+    "react": "latest",
+    "react-dom": "latest"
+  },
+  "devDependencies": {
+    "@cloudbase/cli": "^3.6.4",
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "playwright-core": "^1.61.1",
+    "typescript": "^5.9.3",
+    "vitest": "latest"
+  }
+}
