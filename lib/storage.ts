@@ -16,24 +16,6 @@ export interface ChecklistStore {
   save(id: string, checked: boolean): Promise<void>;
 }
 
-export async function checkCloudSession(): Promise<boolean> {
-  if (!API_URL) return true;
-  const response = await fetch(`${API_URL}/session`, { cache: "no-store", credentials: "same-origin" });
-  if (!response.ok) return false;
-  return Boolean((await response.json() as { authenticated?: boolean }).authenticated);
-}
-
-export async function unlockCloudSession(code: string): Promise<void> {
-  if (!API_URL) return;
-  const response = await fetch(`${API_URL}/session`, {
-    method: "POST",
-    credentials: "same-origin",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ code }),
-  });
-  if (!response.ok) throw new Error((await response.json().catch(() => null))?.error || "同行口令验证失败");
-}
-
 function readCache<T>(key: string): T | null {
   try {
     const raw = localStorage.getItem(key);

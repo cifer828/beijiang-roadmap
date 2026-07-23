@@ -62,7 +62,6 @@ NEXT_PUBLIC_SITE_URL=
 - `AMAP_SECURITY_JSCODE`：仅服务端读取的高德安全密钥。应用通过同源 `/_AMapService` 代理转发安全服务请求；不要使用 `NEXT_PUBLIC_` 前缀。
 - `NEXT_PUBLIC_AMAP_SERVICE_HOST`：可选的公网高德安全代理前缀；Netlify 和 EdgeOne 使用 `/api/amap`，组件会自动补上高德规定的 `/_AMapService` 固定路径。本地留空即可。
 - `NEXT_PUBLIC_TRIP_API_URL`：共享存储接口根地址。Netlify 已在 `netlify.toml` 中设为 `/api/trip-data`；本地留空时使用本机存储。
-- `TRIP_ACCESS_CODE`：仅服务端读取的同行口令。生产环境必须配置，不要使用 `NEXT_PUBLIC_` 前缀，也不要提交到 Git。
 - `NEXT_PUBLIC_CLOUDBASE_API_URL`：兼容未来腾讯云后端的旧配置；设置 `NEXT_PUBLIC_TRIP_API_URL` 时优先使用前者。
 - `NEXT_PUBLIC_SITE_URL`：部署后的公开站点根地址，用于生成分享卡片的绝对链接；本地可留空。
 
@@ -77,7 +76,6 @@ NEXT_PUBLIC_SITE_URL=
 - 清单与当前打开的账本每 15 秒同步一次，重新进入页面、切回浏览器时也会立即刷新。
 - 每台手机会缓存最近一次成功读取的数据，临时弱网时仍可查看；写入失败会明确提示，不会伪装成已成功共享。
 - 身份和所选日期只保存在本机，四个人不需要注册账号。
-- 首次进入清单或记账时输入同行口令，验证后使用 `HttpOnly`、`SameSite=Lax` 会话 Cookie 保护共享数据和凭证图片。
 - 初始账本包含迁移说明中的两笔演示消费，共 ¥5,760.19；最简平账为家庭 A 向家庭 B 转账 ¥319.91。
 
 本地直接运行 `npm run dev` 时不连接 Netlify，清单和消费保存在 `localStorage`。如需连同 Functions 本地联调，可使用已登录并已关联项目的 Netlify CLI 运行 `netlify dev`。
