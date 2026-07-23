@@ -2,7 +2,7 @@
 
 import { ChangeEvent, FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import TripMap from "@/components/TripMap";
-import AmapLink from "@/components/AmapLink";
+import AmapLink, { AmapNavigationIcon } from "@/components/AmapLink";
 import { BOOKING_CHECKLIST, DAYS, FIXED_CHECKLIST, SIGHTS, amapMarker, xiaohongshuSearch, type Hotel, type Sight, type Todo, type TripDay } from "@/lib/data";
 import { beijingDate, daysUntilTrip, defaultTripDate, TRIP_END, TRIP_START } from "@/lib/date";
 import { DEMO_EXPENSES, FAMILY_A, FAMILY_B, PEOPLE, formatMoney, settle, type Expense, type Person } from "@/lib/ledger";
@@ -35,9 +35,19 @@ function DateStrip({ selected, onSelect }: { selected: string; onSelect: (id: st
   );
 }
 
-function NavButton({ href, children, className = "" }: { href: string | null; children: React.ReactNode; className?: string }) {
+function NavButton({ href, children, className = "", iconOnly = false, label }: { href: string | null; children: React.ReactNode; className?: string; iconOnly?: boolean; label?: string }) {
   if (!href) return null;
-  return <AmapLink className={className} href={href}>{children}</AmapLink>;
+  const accessibleLabel = label ?? (typeof children === "string" ? children : "在高德地图查看地点");
+  return (
+    <AmapLink
+      aria-label={accessibleLabel}
+      title={accessibleLabel}
+      className={`${className}${iconOnly ? " amap-icon-button" : ""}`.trim()}
+      href={href}
+    >
+      {iconOnly ? <AmapNavigationIcon /> : children}
+    </AmapLink>
+  );
 }
 
 function Hero() {
@@ -65,10 +75,12 @@ function RouteCard({ day }: { day: TripDay }) {
   return (
     <article className="route-card card">
       <div className="route-meta"><span>DAY {String(day.day).padStart(2, "0")} · {day.date}</span><em>{day.drive}{day.distance ? ` · ${day.distance}` : ""}</em></div>
-      <h2>{day.title}</h2>
+      <div className="route-heading">
+        <h2>{day.title}</h2>
+        <NavButton iconOnly href={amapMarker(day.routePoints[day.routePoints.length - 1])}>在高德查看今日终点</NavButton>
+      </div>
       <p>{day.route}</p>
-      <NavButton className="primary-button" href={amapMarker(day.routePoints[day.routePoints.length - 1])}>在高德查看今日终点 ↗</NavButton>
-      <div className="route-stops"><span>途经</span>{stops.map((point, index) => <NavButton key={`${point.name}-${index}`} href={amapMarker(point)}>{point.name} ↗</NavButton>)}</div>
+      <div className="route-stops"><span>途经</span>{stops.map((point, index) => <NavButton label={`在高德查看${point.name}`} key={`${point.name}-${index}`} href={amapMarker(point)}>{point.name} ↗</NavButton>)}</div>
     </article>
   );
 }
@@ -93,7 +105,7 @@ function Timeline({ day }: { day: TripDay }) {
       <SectionTitle title="今天怎么走" count={`${day.timeline.length} 个节点`} />
       <div className="timeline card">{day.timeline.map((item, index) => (
         <article key={`${item.time}-${item.title}`}>
-          <time>{item.time}</time><i className="timeline-dot" /><div><h3>{item.title}</h3><p>{item.detail}</p>{item.point && <NavButton href={amapMarker(item.point)}>高德地点 ↗</NavButton>}</div>
+          <time>{item.time}</time><i className="timeline-dot" /><div><div className="timeline-heading"><h3>{item.title}</h3>{item.point && <NavButton iconOnly label={`在高德查看${item.point.name}`} href={amapMarker(item.point)}>地点</NavButton>}</div><p>{item.detail}</p></div>
           {index < day.timeline.length - 1 && <span className="timeline-line" />}
         </article>
       ))}</div>
@@ -111,7 +123,7 @@ function SightCard({ sight, index }: { sight: Sight; index: number }) {
         <div className="cover-shade" />
         <button className="expand-button" type="button" aria-label={expanded ? `收起${sight.name}` : `展开${sight.name}`}>{expanded ? "×" : "+"}</button>
         <div className="sight-copy"><b>{String(index + 1).padStart(2, "0")}</b><div><h3>{sight.name}</h3><p>{sight.summary}</p><span>{sight.ticket}</span><span>{sight.duration}</span></div></div>
-        <NavButton className="cover-nav" href={amapMarker(sight)}>高德地点 ↗</NavButton>
+        <NavButton iconOnly label={`在高德查看${sight.name}`} className="cover-nav" href={amapMarker(sight)}>地点</NavButton>
       </div>
       {expanded && (
         <div className="sight-details" onClick={(event) => event.stopPropagation()}>
@@ -138,9 +150,9 @@ function HotelCard({ hotel }: { hotel: Hotel }) {
         <div className="hotel-badges">{hotel.plan && <span>{hotel.plan}</span>}<span className="booked">已预订</span>{hotel.status.includes("保底") && <span className="pending">保底预订 · 待确认</span>}</div>
         <span className="platform">{hotel.platform}</span>
         <div className="hotel-copy"><h3>{hotel.name}</h3><p>{hotel.address}</p></div>
+        <NavButton iconOnly label={`在高德查看${hotel.name}`} className="hotel-place-icon" href={amapMarker(hotel)}>地点</NavButton>
       </div>
       <dl className="hotel-facts">{facts.map(([label, value]) => <div key={label}><dt>{label}</dt><dd className={label === "金额" ? "amount" : ""}>{value}</dd></div>)}</dl>
-      <NavButton className="primary-button hotel-nav" href={amapMarker(hotel)}>查看酒店地点 ↗</NavButton>
     </article>
   );
 }

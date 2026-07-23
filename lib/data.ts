@@ -358,6 +358,29 @@ export function amapMarker(point: Point): string | null {
   return `https://uri.amap.com/marker?position=${target.lng},${target.lat}&name=${name}&src=beijiang-trip&coordinate=gaode&callnative=1`;
 }
 
+export type AmapAppPlatform = "ios" | "android";
+
+export function amapAppMarker(markerUrl: string, platform: AmapAppPlatform): string | null {
+  try {
+    const marker = new URL(markerUrl);
+    if (marker.hostname !== "uri.amap.com" || marker.pathname !== "/marker") return null;
+    const [lng, lat] = (marker.searchParams.get("position") ?? "").split(",");
+    const name = marker.searchParams.get("name");
+    if (!lng || !lat || !name || !Number.isFinite(Number(lng)) || !Number.isFinite(Number(lat))) return null;
+    const query = new URLSearchParams({
+      sourceApplication: "beijiang-roadtrip",
+      poiname: name,
+      lat,
+      lon: lng,
+      dev: "0",
+    });
+    const scheme = platform === "ios" ? "iosamap" : "androidamap";
+    return `${scheme}://viewMap?${query.toString()}`;
+  } catch {
+    return null;
+  }
+}
+
 export function xiaohongshuSearch(term: string): string {
   return `https://www.xiaohongshu.com/search_result?keyword=${encodeURIComponent(term)}&source=web_search_result_notes`;
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DAYS, POINTS, SIGHTS, amapMarker, navigationTarget } from "../lib/data";
+import { DAYS, POINTS, SIGHTS, amapAppMarker, amapMarker, navigationTarget } from "../lib/data";
 
 describe("迁移数据完整性", () => {
   it("包含 11 天、21 个景点，并只为已核对落点生成兼容导航", () => {
@@ -47,6 +47,24 @@ describe("迁移数据完整性", () => {
     expect(link).not.toContain("/navigation");
     expect(link).not.toContain("mode=car");
     expect(link).not.toContain("/navi");
+  });
+
+  it("手机端使用 App 地图标注 Scheme，只填充地点且不进入导航", () => {
+    const destination = DAYS[0].routePoints.at(-1)!;
+    const marker = amapMarker(destination)!;
+    const ios = amapAppMarker(marker, "ios")!;
+    const android = amapAppMarker(marker, "android")!;
+    for (const link of [ios, android]) {
+      expect(link).toContain("://viewMap?");
+      expect(link).toContain(`poiname=${encodeURIComponent(destination.name)}`);
+      expect(link).toContain(`lat=${destination.lat}`);
+      expect(link).toContain(`lon=${destination.lng}`);
+      expect(link).toContain("dev=0");
+      expect(link).not.toContain("/navi");
+      expect(link).not.toContain("/route");
+    }
+    expect(ios.startsWith("iosamap://")).toBe(true);
+    expect(android.startsWith("androidamap://")).toBe(true);
   });
 
   it("10 月 3 日至 8 日住宿全部保留待确认状态且 10 月 6 日双方案并存", () => {

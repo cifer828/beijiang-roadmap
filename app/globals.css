@@ -54,9 +54,12 @@ a { color: inherit; text-decoration: none; }
 .route-card { padding: 18px 16px 16px; }
 .route-meta { display: flex; align-items: center; justify-content: space-between; color: #8c9690; font-size: 9px; }
 .route-meta em { max-width: 52%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-style: normal; text-align: right; }
-.route-card h2 { margin: 10px 0 4px; font-size: 21px; font-weight: 500; line-height: 1.3; }
+.route-heading { margin-top: 10px; display: flex; align-items: center; gap: 10px; }
+.route-card h2 { min-width: 0; margin: 0; flex: 1; font-size: 21px; font-weight: 500; line-height: 1.3; }
 .route-card > p { margin: 0 0 18px; color: var(--muted); font-size: 11px; }
 .primary-button { min-height: 44px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 12px; background: var(--pine); color: white; font-size: 12px; font-weight: 700; cursor: pointer; }
+.amap-icon-button { flex: 0 0 34px; width: 34px; height: 34px; padding: 0; border: 0; border-radius: 50%; display: inline-grid; place-items: center; color: white; background: var(--pine); box-shadow: 0 5px 13px rgba(23,59,48,.18); cursor: pointer; }
+.amap-icon-button svg { width: 16px; height: 16px; display: block; }
 .route-stops { min-height: 35px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; align-items: center; gap: 5px; }
 .route-stops span { margin-right: 2px; color: #a1aaa5; font-size: 9px; }
 .route-stops a, .timeline a { padding: 6px 9px; border-radius: 10px; color: var(--pine-2); background: #eff4f0; font-size: 9px; font-weight: 700; }
@@ -80,7 +83,11 @@ a { color: inherit; text-decoration: none; }
 .timeline-dot { z-index: 2; width: 8px; height: 8px; margin-top: 2px; border-radius: 50%; background: var(--orange); box-shadow: 0 0 0 3px white; }
 .timeline-line { position: absolute; z-index: 1; top: 26px; bottom: -18px; left: 63px; width: 1px; background: var(--line); }
 .timeline h3 { margin: 0 0 6px; font-size: 13px; }
-.timeline p { margin: 0 0 9px; color: var(--muted); font-size: 10px; line-height: 1.55; }
+.timeline-heading { min-height: 34px; margin-bottom: 3px; display: flex; align-items: flex-start; gap: 8px; }
+.timeline-heading h3 { min-width: 0; margin: 0; flex: 1; }
+.timeline a.amap-icon-button { flex-basis: 30px; width: 30px; height: 30px; padding: 0; border-radius: 50%; color: var(--pine); background: #eff4f0; }
+.timeline a.amap-icon-button svg { width: 14px; height: 14px; }
+.timeline p { margin: 0; color: var(--muted); font-size: 10px; line-height: 1.55; }
 
 .sight-list, .hotel-list, .todo-list { display: flex; flex-direction: column; gap: 10px; }
 .sight-card { overflow: hidden; cursor: pointer; }
@@ -93,7 +100,7 @@ a { color: inherit; text-decoration: none; }
 .sight-copy h3 { margin: 0 0 4px; font-size: 17px; font-weight: 500; }
 .sight-copy p { display: -webkit-box; margin: 0 0 6px; overflow: hidden; color: rgba(255,255,255,.75); font-size: 9px; line-height: 1.45; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
 .sight-copy span { display: inline-block; max-width: 145px; margin: 0 4px 0 0; padding: 5px 7px; overflow: hidden; border: 1px solid rgba(255,255,255,.18); border-radius: 8px; background: rgba(255,255,255,.14); font-size: 8px; text-overflow: ellipsis; white-space: nowrap; vertical-align: bottom; }
-.cover-nav { position: absolute; right: 13px; bottom: 14px; padding: 8px 10px; border-radius: 10px; background: white; color: var(--pine); font-size: 9px; font-weight: 800; }
+.cover-nav.amap-icon-button { position: absolute; right: 13px; bottom: 14px; color: var(--pine); background: white; box-shadow: 0 5px 15px rgba(10,29,23,.24); }
 .sight-details { padding: 17px 15px 18px; cursor: default; }
 .sight-details dl { margin: 0; display: grid; grid-template-columns: 44px 1fr; gap: 8px; font-size: 10px; line-height: 1.4; }
 .sight-details dt { font-weight: 800; }
@@ -111,7 +118,7 @@ a { color: inherit; text-decoration: none; }
 .hotel-badges .booked { background: rgba(48,111,76,.78); }
 .hotel-badges .pending { background: rgba(177,104,61,.85); }
 .platform { position: absolute; z-index: 2; top: 13px; right: 13px; }
-.hotel-copy { position: absolute; z-index: 2; left: 15px; right: 15px; bottom: 17px; }
+.hotel-copy { position: absolute; z-index: 2; left: 15px; right: 60px; bottom: 17px; }
 .hotel-copy h3 { margin: 0 0 6px; font-size: 19px; font-weight: 500; line-height: 1.25; }
 .hotel-copy p { margin: 0; overflow: hidden; color: rgba(255,255,255,.72); font-size: 9px; line-height: 1.4; text-overflow: ellipsis; white-space: nowrap; }
 .hotel-facts { margin: 0; padding: 16px 16px 8px; border-top: 1px solid var(--line); }
@@ -119,7 +126,7 @@ a { color: inherit; text-decoration: none; }
 .hotel-facts dt { color: #9aa29d; }
 .hotel-facts dd { margin: 0; color: #59655e; font-weight: 600; }
 .hotel-facts dd.amount { color: #79817d; font-weight: 500; }
-.hotel-nav { margin: 2px 15px 14px; }
+.hotel-place-icon.amap-icon-button { position: absolute; z-index: 3; right: 14px; bottom: 15px; color: var(--pine); background: white; box-shadow: 0 5px 15px rgba(10,29,23,.24); }
 
 .todo-card { position: relative; width: 100%; min-height: 73px; padding: 13px 42px 13px 12px; border: 0; display: grid; grid-template-columns: 23px 1fr; align-items: center; gap: 10px; text-align: left; cursor: pointer; }
 .checkbox { width: 21px; height: 21px; border: 2px solid #c9cfcb; border-radius: 6px; display: grid; place-items: center; color: white; font-style: normal; font-size: 12px; }
@@ -254,8 +261,9 @@ a { color: inherit; text-decoration: none; }
 .map-info > p { margin: 0; color: #89928c; font-size: 9px; }
 .map-stats { margin-top: 11px; display: flex; gap: 6px; }
 .map-stats b { padding: 7px 9px; border-radius: 8px; background: #f1f4f1; font-size: 8px; font-weight: 500; }
-.map-info-actions { margin-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.map-info-actions { margin-top: 10px; display: grid; grid-template-columns: 39px 1fr; gap: 8px; }
 .map-info-actions a, .map-info-actions button { height: 39px; border: 0; border-radius: 10px; display: grid; place-items: center; color: white; background: var(--pine); font-size: 10px; font-weight: 700; cursor: pointer; }
+.map-info-actions a.amap-icon-button { width: 39px; border-radius: 50%; }
 .map-info-actions button { color: #745f4a; background: var(--sand); }
 .map-fallback { padding: 102px 14px 220px; overflow-y: auto; background: radial-gradient(circle at 20% 20%, #f4f5f2, #e4e9e5); }
 .fallback-copy span { color: #a36b4b; font-size: 9px; font-weight: 700; letter-spacing: 1.5px; }
@@ -266,7 +274,8 @@ a { color: inherit; text-decoration: none; }
 .fallback-list > div em { color: #9b9f9c; }
 .fallback-list b { color: #a7aea9; font-size: 9px; }
 .fallback-list span { font-size: 11px; font-weight: 600; }
-.fallback-list em { color: var(--pine); font-size: 9px; font-style: normal; }
+.fallback-list em { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; color: var(--pine); background: #eff4f0; font-size: 8px; font-style: normal; text-align: center; }
+.fallback-list em svg { width: 14px; height: 14px; }
 
 @media (max-width: 380px) {
   .sight-cover { height: 164px; }
