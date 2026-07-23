@@ -3,7 +3,7 @@
 import { ChangeEvent, FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import TripMap from "@/components/TripMap";
 import AmapLink from "@/components/AmapLink";
-import { BOOKING_CHECKLIST, DAYS, FIXED_CHECKLIST, SIGHTS, amapMarker, amapNavigation, xiaohongshuSearch, type Hotel, type Sight, type Todo, type TripDay } from "@/lib/data";
+import { BOOKING_CHECKLIST, DAYS, FIXED_CHECKLIST, SIGHTS, amapMarker, xiaohongshuSearch, type Hotel, type Sight, type Todo, type TripDay } from "@/lib/data";
 import { beijingDate, daysUntilTrip, defaultTripDate, TRIP_END, TRIP_START } from "@/lib/date";
 import { DEMO_EXPENSES, FAMILY_A, FAMILY_B, PEOPLE, formatMoney, settle, type Expense, type Person } from "@/lib/ledger";
 import { checklistStore, expenseStore, isCloudMode } from "@/lib/storage";
@@ -67,7 +67,7 @@ function RouteCard({ day }: { day: TripDay }) {
       <div className="route-meta"><span>DAY {String(day.day).padStart(2, "0")} · {day.date}</span><em>{day.drive}{day.distance ? ` · ${day.distance}` : ""}</em></div>
       <h2>{day.title}</h2>
       <p>{day.route}</p>
-      <NavButton className="primary-button" href={amapNavigation(day.routePoints)}>打开当天高德路线 ↗</NavButton>
+      <NavButton className="primary-button" href={amapMarker(day.routePoints[day.routePoints.length - 1])}>在高德查看今日终点 ↗</NavButton>
       <div className="route-stops"><span>途经</span>{stops.map((point, index) => <NavButton key={`${point.name}-${index}`} href={amapMarker(point)}>{point.name} ↗</NavButton>)}</div>
     </article>
   );
@@ -93,7 +93,7 @@ function Timeline({ day }: { day: TripDay }) {
       <SectionTitle title="今天怎么走" count={`${day.timeline.length} 个节点`} />
       <div className="timeline card">{day.timeline.map((item, index) => (
         <article key={`${item.time}-${item.title}`}>
-          <time>{item.time}</time><i className="timeline-dot" /><div><h3>{item.title}</h3><p>{item.detail}</p>{item.point && <NavButton href={amapMarker(item.point)}>导航 ↗</NavButton>}</div>
+          <time>{item.time}</time><i className="timeline-dot" /><div><h3>{item.title}</h3><p>{item.detail}</p>{item.point && <NavButton href={amapMarker(item.point)}>高德地点 ↗</NavButton>}</div>
           {index < day.timeline.length - 1 && <span className="timeline-line" />}
         </article>
       ))}</div>
@@ -111,7 +111,7 @@ function SightCard({ sight, index }: { sight: Sight; index: number }) {
         <div className="cover-shade" />
         <button className="expand-button" type="button" aria-label={expanded ? `收起${sight.name}` : `展开${sight.name}`}>{expanded ? "×" : "+"}</button>
         <div className="sight-copy"><b>{String(index + 1).padStart(2, "0")}</b><div><h3>{sight.name}</h3><p>{sight.summary}</p><span>{sight.ticket}</span><span>{sight.duration}</span></div></div>
-        <NavButton className="cover-nav" href={amapMarker(sight)}>导航 ↗</NavButton>
+        <NavButton className="cover-nav" href={amapMarker(sight)}>高德地点 ↗</NavButton>
       </div>
       {expanded && (
         <div className="sight-details" onClick={(event) => event.stopPropagation()}>
@@ -140,7 +140,7 @@ function HotelCard({ hotel }: { hotel: Hotel }) {
         <div className="hotel-copy"><h3>{hotel.name}</h3><p>{hotel.address}</p></div>
       </div>
       <dl className="hotel-facts">{facts.map(([label, value]) => <div key={label}><dt>{label}</dt><dd className={label === "金额" ? "amount" : ""}>{value}</dd></div>)}</dl>
-      <NavButton className="primary-button hotel-nav" href={amapMarker(hotel)}>酒店导航 ↗</NavButton>
+      <NavButton className="primary-button hotel-nav" href={amapMarker(hotel)}>查看酒店地点 ↗</NavButton>
     </article>
   );
 }

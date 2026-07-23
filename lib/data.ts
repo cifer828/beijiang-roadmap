@@ -351,49 +351,11 @@ export function navigationTarget(point: Point): NavigationTarget | null {
   return point.navigation ?? point;
 }
 
-export type AmapPlatform = "ios" | "android";
-
 export function amapMarker(point: Point): string | null {
   const target = navigationTarget(point);
   if (!target) return null;
   const name = encodeURIComponent(target.name);
   return `https://uri.amap.com/marker?position=${target.lng},${target.lat}&name=${name}&src=beijiang-trip&coordinate=gaode&callnative=1`;
-}
-
-export function amapNavigation(points: Point[]): string {
-  const from = points[0];
-  const to = points[points.length - 1];
-  return `https://uri.amap.com/navigation?from=${from.lng},${from.lat},${encodeURIComponent(from.name)}&to=${to.lng},${to.lat},${encodeURIComponent(to.name)}&mode=car&policy=1&src=beijiang-trip&coordinate=gaode&callnative=1`;
-}
-
-function parseCoordinate(value: string | null): { lng: string; lat: string; name: string } | null {
-  if (!value) return null;
-  const [lng, lat, ...nameParts] = value.split(",");
-  if (!lng || !lat) return null;
-  return { lng, lat, name: nameParts.join(",") };
-}
-
-export function mobileAmapPlatform(userAgent: string): AmapPlatform | null {
-  if (/iPhone|iPad|iPod/i.test(userAgent)) return "ios";
-  if (/Android|HarmonyOS|OpenHarmony/i.test(userAgent)) return "android";
-  return null;
-}
-
-export function amapDeepLink(webUrl: string, platform: AmapPlatform): string | null {
-  const url = new URL(webUrl);
-  const source = "beijiang-trip";
-  const position = parseCoordinate(url.searchParams.get("position"));
-  if (position) {
-    const name = url.searchParams.get("name") || position.name;
-    const scheme = platform === "ios" ? "iosamap://navi" : "androidamap://navi";
-    return `${scheme}?sourceApplication=${source}&poiname=${encodeURIComponent(name)}&lat=${position.lat}&lon=${position.lng}&dev=0&style=0`;
-  }
-
-  const from = parseCoordinate(url.searchParams.get("from"));
-  const to = parseCoordinate(url.searchParams.get("to"));
-  if (!from || !to) return null;
-  const query = `sourceApplication=${source}&sid=&slat=${from.lat}&slon=${from.lng}&sname=${encodeURIComponent(from.name)}&did=&dlat=${to.lat}&dlon=${to.lng}&dname=${encodeURIComponent(to.name)}&dev=0&t=0`;
-  return platform === "ios" ? `iosamap://path?${query}` : `amapuri://route/plan/?${query}`;
 }
 
 export function xiaohongshuSearch(term: string): string {

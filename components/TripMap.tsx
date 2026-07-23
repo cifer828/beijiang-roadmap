@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import AmapLink from "@/components/AmapLink";
-import { amapMarker, amapNavigation, DAYS, FULL_ROUTE, type Point, type TripDay } from "@/lib/data";
+import { amapMarker, DAYS, FULL_ROUTE, type Point, type TripDay } from "@/lib/data";
 
 declare global {
   interface Window {
@@ -27,7 +27,7 @@ export default function TripMap({ day, onChangeDay, onShowDay }: Props) {
   const [apiState, setApiState] = useState<"idle" | "ready" | "failed">(apiKey ? "idle" : "failed");
   const [selectedPoint, setSelectedPoint] = useState<Point>(day.routePoints[day.routePoints.length - 1]);
   const [locating, setLocating] = useState(false);
-  const [message, setMessage] = useState(apiKey ? "" : "尚未配置高德 Key，已显示可导航地点清单");
+  const [message, setMessage] = useState(apiKey ? "" : "尚未配置高德 Key，已显示可查看地点清单");
 
   useEffect(() => {
     setSelectedPoint(day.routePoints[day.routePoints.length - 1]);
@@ -182,7 +182,7 @@ export default function TripMap({ day, onChangeDay, onShowDay }: Props) {
           <div className="fallback-list">
             {day.routePoints.map((point, index) => {
               const href = amapMarker(point);
-              const content = <><b>{String(index + 1).padStart(2, "0")}</b><span>{point.name}</span><em>{href ? "导航 ↗" : "沿途路段"}</em></>;
+              const content = <><b>{String(index + 1).padStart(2, "0")}</b><span>{point.name}</span><em>{href ? "高德地点 ↗" : "沿途路段"}</em></>;
               return href ? (
                 <AmapLink key={`${point.name}-${index}`} href={href}>{content}</AmapLink>
               ) : (
@@ -211,7 +211,7 @@ export default function TripMap({ day, onChangeDay, onShowDay }: Props) {
         <p>{day.title} · {counts.hotels} 个住宿方案</p>
         <div className="map-stats"><b>景点 {counts.sights}</b><b>待办 {counts.todos}</b><b>{day.drive}</b></div>
         <div className="map-info-actions">
-          <AmapLink href={amapNavigation(day.routePoints)}>高德导航 ↗</AmapLink>
+          {amapMarker(selectedPoint) && <AmapLink href={amapMarker(selectedPoint)!}>查看高德地点 ↗</AmapLink>}
           <button type="button" onClick={onShowDay}>查看当天详情</button>
         </div>
       </div>

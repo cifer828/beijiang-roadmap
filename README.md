@@ -1,6 +1,6 @@
 # 北疆秋日环线 · 十一天自驾助手
 
-面向 2026 年 9 月 29 日至 10 月 9 日北疆自驾行程的手机 Web App。应用包含 11 天每日详情、21 个景点、住宿订单、精确高德导航、全景路线、行前清单和双家庭固定 50/50 记账。
+面向 2026 年 9 月 29 日至 10 月 9 日北疆自驾行程的手机 Web App。应用包含 11 天每日详情、21 个景点、住宿订单、精确高德地点跳转、全景路线、行前清单和双家庭固定 50/50 记账。
 
 ## 本地启动
 
@@ -26,7 +26,7 @@ npm start -- --port 43127
 npm run build:static
 ```
 
-产物位于 `out/`。未配置高德 Key 时地图页自动使用地点清单，不影响其他页面和精确导航。
+产物位于 `out/`。未配置高德 Key 时地图页自动使用地点清单，不影响其他页面和精确地点跳转。
 
 ## Netlify 部署
 
@@ -58,7 +58,7 @@ NEXT_PUBLIC_CLOUDBASE_API_URL=
 NEXT_PUBLIC_SITE_URL=
 ```
 
-- `NEXT_PUBLIC_AMAP_KEY`：高德 JS API 2.0 Web Key。未配置时地图页自动显示可导航的当天地点清单。
+- `NEXT_PUBLIC_AMAP_KEY`：高德 JS API 2.0 Web Key。未配置时地图页自动显示可查看的当天地点清单。
 - `AMAP_SECURITY_JSCODE`：仅服务端读取的高德安全密钥。应用通过同源 `/_AMapService` 代理转发安全服务请求；不要使用 `NEXT_PUBLIC_` 前缀。
 - `NEXT_PUBLIC_AMAP_SERVICE_HOST`：可选的公网高德安全代理前缀；Netlify 和 EdgeOne 使用 `/api/amap`，组件会自动补上高德规定的 `/_AMapService` 固定路径。本地留空即可。
 - `NEXT_PUBLIC_TRIP_API_URL`：共享存储接口根地址。Netlify 已在 `netlify.toml` 中设为 `/api/trip-data`；本地留空时使用本机存储。
@@ -80,9 +80,9 @@ NEXT_PUBLIC_SITE_URL=
 
 本地直接运行 `npm run dev` 时不连接 Netlify，清单和消费保存在 `localStorage`。如需连同 Functions 本地联调，可使用已登录并已关联项目的 Netlify CLI 运行 `netlify dev`。
 
-## 高德导航与地图
+## 高德地点与地图
 
-地点按钮使用 `uri.amap.com/marker`，当天路线使用 `uri.amap.com/navigation`，均传入已核对的高德坐标和地点名。URI 使用 `callnative=0`，在微信等内置浏览器里可回落到高德 Web 页面；安装高德 App 后仍可从页面继续唤起 App。阿禾公路、喀拉峻草原这类没有唯一且已确认到达点的泛路线不展示单点导航按钮，避免把车辆导向错误或非开放位置。
+所有地点按钮都使用 `uri.amap.com/marker` 并传入已核对的高德坐标和地点名，只在高德中展示标注点，不预设驾车、步行、骑行或自动导航。URI 使用 `callnative=1` 尝试打开高德 App，并可回落到高德 Web 地图；当天入口打开当天终点，地图信息卡打开当前选中的标记点。阿禾公路、喀拉峻草原这类没有唯一且已确认落点的泛路线不展示单点按钮，避免把用户带到错误或非开放位置。
 
 配置高德环境变量后，地图页显示：
 
