@@ -3,10 +3,11 @@ import { chromium } from "playwright-core";
 const baseURL = process.env.BASE_URL || "http://localhost:43128";
 const iterations = Number(process.env.MAP_TOGGLE_COUNT || 12);
 const failFirstLoad = process.env.MAP_FAIL_ONCE === "1";
+const browserArgs = ["--disable-dev-shm-usage", process.env.BROWSER_PROXY ? `--proxy-server=${process.env.BROWSER_PROXY}` : "--no-proxy-server"];
 const browser = await chromium.launch({
   headless: true,
   executablePath: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-  args: ["--disable-dev-shm-usage", "--no-proxy-server"],
+  args: browserArgs,
 });
 const context = await browser.newContext({
   viewport: { width: 390, height: 844 },

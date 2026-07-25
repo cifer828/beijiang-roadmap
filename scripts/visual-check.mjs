@@ -3,12 +3,13 @@ import fs from "node:fs/promises";
 
 const baseURL = process.env.BASE_URL || "http://localhost:43127";
 const output = process.env.OUTPUT_DIR || "/tmp/bj-roadtrip-visual";
+const browserArgs = ["--disable-dev-shm-usage", process.env.BROWSER_PROXY ? `--proxy-server=${process.env.BROWSER_PROXY}` : "--no-proxy-server"];
 await fs.mkdir(output, { recursive: true });
 
 const browser = await chromium.launch({
   headless: true,
   executablePath: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-  args: ["--disable-dev-shm-usage", "--no-proxy-server"],
+  args: browserArgs,
 });
 const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, locale: "zh-CN", timezoneId: "Asia/Shanghai" });
 const page = await context.newPage();
@@ -21,9 +22,11 @@ page.on("response", (response) => {
   if (response.status() >= 400 && !response.url().includes("/.well-known/") && !response.url().endsWith("/favicon.ico")) errors.push(`response-${response.status()}: ${response.url()}`);
 });
 
-await page.goto(baseURL, { waitUntil: "networkidle" });
+await page.goto(baseURL, { waitUntil: "domcontentloaded", timeout: 60_000 });
+await page.locator(".bottom-nav").waitFor({ state: "visible", timeout: 30_000 });
 await page.evaluate(() => localStorage.clear());
-await page.reload({ waitUntil: "networkidle" });
+await page.reload({ waitUntil: "domcontentloaded", timeout: 60_000 });
+await page.locator(".bottom-nav").waitFor({ state: "visible", timeout: 30_000 });
 await page.evaluate(() => { document.documentElement.style.scrollBehavior = "auto"; });
 
 const shot = (name) => page.screenshot({ path: `${output}/${name}.png`, fullPage: false });

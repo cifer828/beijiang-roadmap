@@ -1,9 +1,10 @@
 import { chromium } from "playwright-core";
 
+const browserArgs = ["--disable-dev-shm-usage", process.env.BROWSER_PROXY ? `--proxy-server=${process.env.BROWSER_PROXY}` : "--no-proxy-server"];
 const browser = await chromium.launch({
   headless: true,
   executablePath: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-  args: ["--disable-dev-shm-usage", "--no-proxy-server"],
+  args: browserArgs,
 });
 const context = await browser.newContext({
   viewport: { width: 390, height: 844 },
