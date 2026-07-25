@@ -51,12 +51,12 @@ function NavButton({ href, children, className = "", iconOnly = false, label }: 
 }
 
 function Hero() {
-  const now = beijingDate();
-  const before = now < TRIP_START;
-  const during = now >= TRIP_START && now <= TRIP_END;
-  const count = daysUntilTrip();
-  const countdownValue = before ? count : during ? "旅途中" : "已归来";
-  const countdownLabel = before ? "天后出发" : during ? "北京时间" : "秋日环线";
+  const [today, setToday] = useState<string | null>(null);
+  useEffect(() => setToday(beijingDate()), []);
+  const before = today ? today < TRIP_START : true;
+  const during = today ? today >= TRIP_START && today <= TRIP_END : false;
+  const countdownValue = today ? before ? daysUntilTrip() : during ? "旅途中" : "已归来" : "—";
+  const countdownLabel = today ? before ? "天后出发" : during ? "北京时间" : "秋日环线" : "北京时间";
   return (
     <header className="hero">
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -327,6 +327,7 @@ function LedgerPage({ identity, setIdentity, expenses, setExpenses }: { identity
 
 export default function Home() {
   const [tab, setTab] = useState<Tab>("today");
+  const [mapMounted, setMapMounted] = useState(false);
   const [selected, setSelectedState] = useState(DAYS[0].id);
   const [checklist, setChecklistState] = useState<Record<string, boolean>>({});
   const [identity, setIdentityState] = useState<Person | null>(null);
@@ -378,16 +379,21 @@ export default function Home() {
   const setIdentity = (person: Person | null) => { setIdentityState(person); if (person) localStorage.setItem("bj-identity", person); else localStorage.removeItem("bj-identity"); };
   const day = DAYS.find((item) => item.id === selected) ?? DAYS[0];
   const showDay = (id = selected) => { setSelected(id); setTab("today"); requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "smooth" })); };
+  const openTab = (nextTab: Tab) => {
+    if (nextTab === "map") setMapMounted(true);
+    setTab(nextTab);
+    window.scrollTo({ top: 0, behavior: "auto" });
+  };
 
   return (
     <div className="app-shell">
       {tab === "today" && <TodayPage day={day} selected={selected} setSelected={setSelected} checklist={checklist} toggleChecklist={toggleChecklist} />}
       {tab === "trip" && <TripPage openDay={showDay} />}
-      {tab === "map" && <TripMap day={day} onChangeDay={setSelected} onShowDay={() => showDay()} />}
+      {mapMounted && <TripMap active={tab === "map"} day={day} onChangeDay={setSelected} onShowDay={() => showDay()} />}
       {tab === "checklist" && <ChecklistPage checklist={checklist} toggleChecklist={toggleChecklist} />}
       {tab === "ledger" && <LedgerPage identity={identity} setIdentity={setIdentity} expenses={expenses} setExpenses={setExpenses} />}
       {syncMessage && <button className="sync-message" type="button" onClick={() => setSyncMessage("")}>{syncMessage} ×</button>}
-      <nav className="bottom-nav">{TAB_ITEMS.map((item) => <button key={item.id} type="button" className={tab === item.id ? "active" : ""} onClick={() => { setTab(item.id); window.scrollTo({ top: 0, behavior: "auto" }); }}><i>{item.icon}</i><span>{item.label}</span></button>)}</nav>
+      <nav className="bottom-nav">{TAB_ITEMS.map((item) => <button key={item.id} type="button" className={tab === item.id ? "active" : ""} onClick={() => openTab(item.id)}><i>{item.icon}</i><span>{item.label}</span></button>)}</nav>
     </div>
   );
 }

@@ -13,18 +13,23 @@ declare global {
 }
 
 type Props = {
+  active: boolean;
   day: TripDay;
   onChangeDay: (id: string) => void;
   onShowDay: () => void;
 };
 
-export default function TripMap({ day, onChangeDay, onShowDay }: Props) {
+const AMAP_SCRIPT_SELECTOR = "script[data-amap-loader]";
+const AMAP_LOAD_TIMEOUT = 15_000;
+
+export default function TripMap({ active, day, onChangeDay, onShowDay }: Props) {
   const apiKey = process.env.NEXT_PUBLIC_AMAP_KEY;
   const containerRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
   const routeOverlays = useRef<any[]>([]);
-  const [apiState, setApiState] = useState<"idle" | "ready" | "failed">(apiKey ? "idle" : "failed");
+  const [apiState, setApiState] = useState<"loading" | "ready" | "failed">(apiKey ? "loading" : "failed");
+  const [retryCount, setRetryCount] = useState(0);
   const [selectedPoint, setSelectedPoint] = useState<Point>(day.routePoints[day.routePoints.length - 1]);
   const [locating, setLocating] = useState(false);
   const [message, setMessage] = useState(apiKey ? "" : "尚未配置高德 Key，已显示可查看地点清单");
@@ -34,29 +39,78 @@ export default function TripMap({ day, onChangeDay, onShowDay }: Props) {
   }, [day]);
 
   useEffect(() => {
-    if (!apiKey || window.AMap) {
-      if (window.AMap) setApiState("ready");
+    if (!apiKey) {
+      setApiState("failed");
+      setMessage("尚未配置高德 Key，已显示可查看地点清单");
       return;
     }
+    if (window.AMap) {
+      setApiState("ready");
+      setMessage("");
+      return;
+    }
+
+    setApiState("loading");
+    setMessage("正在连接高德地图…");
     const proxyOrigin = (process.env.NEXT_PUBLIC_AMAP_SERVICE_HOST || window.location.origin).replace(/\/$/, "");
     window._AMapSecurityConfig = { serviceHost: `${proxyOrigin}/_AMapService` };
-    const existing = document.querySelector<HTMLScriptElement>("script[data-amap-loader]");
-    if (existing) {
-      existing.addEventListener("load", () => setApiState("ready"), { once: true });
-      existing.addEventListener("error", () => setApiState("failed"), { once: true });
-      return;
+
+    let script = document.querySelector<HTMLScriptElement>(AMAP_SCRIPT_SELECTOR);
+    if (script?.dataset.amapState === "failed" || (script?.dataset.amapState === "ready" && !window.AMap)) {
+      script.remove();
+      script = null;
     }
-    const script = document.createElement("script");
-    script.dataset.amapLoader = "true";
-    script.src = `https://webapi.amap.com/maps?v=2.0&key=${encodeURIComponent(apiKey)}&plugin=AMap.Geolocation`;
-    script.async = true;
-    script.onload = () => setApiState("ready");
-    script.onerror = () => {
+    const shouldAppend = !script;
+    if (!script) {
+      script = document.createElement("script");
+      script.dataset.amapLoader = "true";
+      script.dataset.amapState = "loading";
+      script.src = `https://webapi.amap.com/maps?v=2.0&key=${encodeURIComponent(apiKey)}&plugin=AMap.Geolocation`;
+      script.async = true;
+    }
+
+    let active = true;
+    const failed = () => {
+      script!.dataset.amapState = "failed";
+      if (!active) return;
       setApiState("failed");
-      setMessage("地图加载失败，已切换为地点清单");
+      setMessage("地图连接失败，可重试或使用下方地点清单");
     };
-    document.head.appendChild(script);
-  }, [apiKey]);
+    const ready = () => {
+      if (!window.AMap) {
+        failed();
+        return;
+      }
+      script!.dataset.amapState = "ready";
+      if (!active) return;
+      setApiState("ready");
+      setMessage("");
+    };
+    const timeout = window.setTimeout(failed, AMAP_LOAD_TIMEOUT);
+    const onLoad = () => {
+      window.clearTimeout(timeout);
+      ready();
+    };
+    const onError = () => {
+      window.clearTimeout(timeout);
+      failed();
+    };
+    script.addEventListener("load", onLoad, { once: true });
+    script.addEventListener("error", onError, { once: true });
+    if (shouldAppend) document.head.appendChild(script);
+    else if (script.dataset.amapState === "ready") ready();
+
+    return () => {
+      active = false;
+      window.clearTimeout(timeout);
+      script?.removeEventListener("load", onLoad);
+      script?.removeEventListener("error", onError);
+      if (!window.AMap && script?.dataset.amapState === "loading") {
+        script.dataset.amapState = "failed";
+        script.remove();
+      }
+    };
+  }, [apiKey, retryCount]);
 
   const fitRoute = () => {
     const map = mapRef.current;
@@ -68,65 +122,84 @@ export default function TripMap({ day, onChangeDay, onShowDay }: Props) {
   };
 
   useEffect(() => {
-    if (apiState !== "ready" || !window.AMap || !containerRef.current) return;
-    const AMap = window.AMap;
-    const map = mapRef.current ?? new AMap.Map(containerRef.current, {
-      viewMode: "2D",
-      mapStyle: "amap://styles/whitesmoke",
-      zoom: 5,
-      showLabel: true,
-      resizeEnable: true,
-    });
-    mapRef.current = map;
-    window.__BJTripMap = map;
-    map.clearMap();
-
-    const full = new AMap.Polyline({
-      path: FULL_ROUTE.map((point) => [point.lng, point.lat]),
-      strokeColor: "#315c4a",
-      strokeWeight: 5,
-      strokeOpacity: 0.72,
-      showDir: true,
-      lineJoin: "round",
-      zIndex: 20,
-    });
-    const current = new AMap.Polyline({
-      path: day.routePoints.map((point) => [point.lng, point.lat]),
-      strokeColor: "#d97842",
-      strokeWeight: 9,
-      strokeOpacity: 1,
-      showDir: true,
-      lineJoin: "round",
-      zIndex: 35,
-    });
-    map.add([full, current]);
-
-    const todayNames = new Set(day.routePoints.map((point) => point.name));
-    const allVisiblePoints = [...FULL_ROUTE, ...day.routePoints];
-    const unique = allVisiblePoints.filter((point, index, list) => list.findIndex((item) => item.name === point.name) === index);
-    const markers = unique.map((point) => {
-      const active = todayNames.has(point.name);
-      const marker = new AMap.Marker({
-        position: [point.lng, point.lat],
-        content: `<span class="amap-route-dot${active ? " is-current" : ""}" aria-label="${point.name}"></span>`,
-        offset: new AMap.Pixel(active ? -10 : -7, active ? -10 : -7),
-        zIndex: active ? 60 : 40,
+    if (!active || apiState !== "ready" || !window.AMap || !containerRef.current) return;
+    let firstFrame = 0;
+    let settleTimer = 0;
+    try {
+      const AMap = window.AMap;
+      const map = mapRef.current ?? new AMap.Map(containerRef.current, {
+        viewMode: "2D",
+        mapStyle: "amap://styles/whitesmoke",
+        zoom: 5,
+        showLabel: true,
+        resizeEnable: true,
       });
-      marker.on("click", () => setSelectedPoint(point));
-      return marker;
-    });
-    map.add(markers);
-    routeOverlays.current = [full, current, ...markers];
-    const firstFrame = window.requestAnimationFrame(() => {
-      window.requestAnimationFrame(fitRoute);
-    });
-    const settleTimer = window.setTimeout(fitRoute, 260);
+      mapRef.current = map;
+      window.__BJTripMap = map;
+      map.clearMap();
+
+      const full = new AMap.Polyline({
+        path: FULL_ROUTE.map((point) => [point.lng, point.lat]),
+        strokeColor: "#315c4a",
+        strokeWeight: 5,
+        strokeOpacity: 0.72,
+        showDir: true,
+        lineJoin: "round",
+        zIndex: 20,
+      });
+      const current = new AMap.Polyline({
+        path: day.routePoints.map((point) => [point.lng, point.lat]),
+        strokeColor: "#d97842",
+        strokeWeight: 9,
+        strokeOpacity: 1,
+        showDir: true,
+        lineJoin: "round",
+        zIndex: 35,
+      });
+      map.add([full, current]);
+
+      const todayNames = new Set(day.routePoints.map((point) => point.name));
+      const allVisiblePoints = [...FULL_ROUTE, ...day.routePoints];
+      const unique = allVisiblePoints.filter((point, index, list) => list.findIndex((item) => item.name === point.name) === index);
+      const markers = unique.map((point) => {
+        const active = todayNames.has(point.name);
+        const marker = new AMap.Marker({
+          position: [point.lng, point.lat],
+          content: `<span class="amap-route-dot${active ? " is-current" : ""}" aria-label="${point.name}"></span>`,
+          offset: new AMap.Pixel(active ? -10 : -7, active ? -10 : -7),
+          zIndex: active ? 60 : 40,
+        });
+        marker.on("click", () => setSelectedPoint(point));
+        return marker;
+      });
+      map.add(markers);
+      routeOverlays.current = [full, current, ...markers];
+      firstFrame = window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(fitRoute);
+      });
+      settleTimer = window.setTimeout(fitRoute, 260);
+    } catch {
+      mapRef.current?.destroy?.();
+      mapRef.current = null;
+      routeOverlays.current = [];
+      setApiState("failed");
+      setMessage("地图渲染失败，可重试或使用下方地点清单");
+    }
+
     return () => {
       window.cancelAnimationFrame(firstFrame);
       window.clearTimeout(settleTimer);
       routeOverlays.current = [];
     };
-  }, [apiState, day]);
+  }, [active, apiState, day]);
+
+  useEffect(() => () => {
+    const map = mapRef.current;
+    mapRef.current = null;
+    routeOverlays.current = [];
+    if (window.__BJTripMap === map) window.__BJTripMap = undefined;
+    map?.destroy?.();
+  }, []);
 
   const locate = () => {
     if (!navigator.geolocation || !mapRef.current || !window.AMap) {
@@ -171,13 +244,14 @@ export default function TripMap({ day, onChangeDay, onShowDay }: Props) {
   const counts = useMemo(() => ({ sights: day.sightIds.length, hotels: day.hotels.length, todos: day.todos.length }), [day]);
 
   return (
-    <section className="map-page">
+    <section className={`map-page${active ? "" : " map-page-hidden"}`}>
       {apiState === "ready" ? <div ref={containerRef} className="amap-canvas" aria-label="北疆全景路线地图" /> : (
         <div className="map-fallback">
           <div className="fallback-copy">
-            <span>OFFLINE ROUTE</span>
-            <h2>当天地点清单</h2>
+            <span>{apiState === "loading" ? "LOADING MAP" : "OFFLINE ROUTE"}</span>
+            <h2>{apiState === "loading" ? "路线地图加载中" : "当天地点清单"}</h2>
             <p>{message}</p>
+            {apiKey && apiState === "failed" && <button className="map-retry" type="button" onClick={() => setRetryCount((count) => count + 1)}>重新加载地图</button>}
           </div>
           <div className="fallback-list">
             {day.routePoints.map((point, index) => {

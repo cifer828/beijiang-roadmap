@@ -28,7 +28,11 @@ async function proxy(request: NextRequest, context: { params: Promise<{ path: st
   });
   return new NextResponse(response.body, {
     status: response.status,
-    headers: { "content-type": response.headers.get("content-type") ?? "application/json" },
+    headers: {
+      "content-type": request.nextUrl.searchParams.has("callback") || request.nextUrl.searchParams.has("callback2")
+        ? "application/javascript; charset=utf-8"
+        : response.headers.get("content-type") ?? "application/json",
+    },
   });
 }
 

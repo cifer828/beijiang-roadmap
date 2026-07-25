@@ -49,7 +49,9 @@ export default async function onRequest(context) {
   return new Response(response.body, {
     status: response.status,
     headers: {
-      "content-type": response.headers.get("content-type") || "application/json",
+      "content-type": incoming.searchParams.has("callback") || incoming.searchParams.has("callback2")
+        ? "application/javascript; charset=utf-8"
+        : response.headers.get("content-type") || "application/json",
       "cache-control": "no-store",
     },
   });

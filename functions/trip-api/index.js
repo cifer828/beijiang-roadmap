@@ -149,7 +149,10 @@ async function proxyAmap(req, res, url, pathname) {
   url.searchParams.forEach((value, key) => target.searchParams.set(key, value));
   target.searchParams.set("jscode", jscode);
   const response = await fetch(target, { method: req.method, headers: { accept: req.headers.accept || "application/json" } });
-  res.writeHead(response.status, { "content-type": response.headers.get("content-type") || "application/json", "cache-control": "no-store" });
+  const contentType = url.searchParams.has("callback") || url.searchParams.has("callback2")
+    ? "application/javascript; charset=utf-8"
+    : response.headers.get("content-type") || "application/json";
+  res.writeHead(response.status, { "content-type": contentType, "cache-control": "no-store" });
   res.end(Buffer.from(await response.arrayBuffer()));
 }
 

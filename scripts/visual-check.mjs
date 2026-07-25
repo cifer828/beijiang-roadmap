@@ -91,7 +91,9 @@ await page.locator(".rental-card").scrollIntoViewIfNeeded();
 await shot("12-trip-bottom");
 
 await page.locator(".bottom-nav button").nth(2).click();
-await shot("13-map-fallback");
+await page.locator(".amap-canvas").waitFor({ state: "visible", timeout: 16_000 });
+await page.waitForFunction(() => (document.querySelector(".amap-canvas")?.childElementCount ?? 0) > 0, null, { timeout: 8_000 });
+await shot("13-map-route");
 
 await page.locator(".bottom-nav button").nth(3).click();
 await shot("14-checklist-top");
