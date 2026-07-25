@@ -3,7 +3,7 @@ import { chromium } from "playwright-core";
 const browser = await chromium.launch({
   headless: true,
   executablePath: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-  args: ["--disable-dev-shm-usage"],
+  args: ["--disable-dev-shm-usage", "--no-proxy-server"],
 });
 const context = await browser.newContext({
   viewport: { width: 390, height: 844 },
@@ -21,7 +21,7 @@ page.on("response", (response) => {
   }
 });
 
-await page.goto("http://localhost:43127", { waitUntil: "networkidle" });
+await page.goto(process.env.BASE_URL || "http://localhost:43127", { waitUntil: "networkidle" });
 await page.evaluate(() => localStorage.clear());
 await page.reload({ waitUntil: "networkidle" });
 await page.locator(".bottom-nav button").nth(2).click();
@@ -39,7 +39,7 @@ const beforeLocate = await page.evaluate(() => {
     allMarkers: document.querySelectorAll(".amap-route-dot").length,
     currentMarkers: document.querySelectorAll(".amap-route-dot.is-current").length,
     fitEnabled: !document.querySelector(".map-fit").disabled,
-    locateEnabled: !document.querySelector(".map-actions button").disabled,
+    locateEnabled: !document.querySelector(".map-locate").disabled,
     cardBottomGap: Math.round(mapPage.bottom - card.bottom),
     cardHeight: Math.round(card.height),
     zoom: window.__BJTripMap?.getZoom(),

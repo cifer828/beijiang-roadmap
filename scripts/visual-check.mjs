@@ -8,7 +8,7 @@ await fs.mkdir(output, { recursive: true });
 const browser = await chromium.launch({
   headless: true,
   executablePath: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-  args: ["--disable-dev-shm-usage"],
+  args: ["--disable-dev-shm-usage", "--no-proxy-server"],
 });
 const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, locale: "zh-CN", timezoneId: "Asia/Shanghai" });
 const page = await context.newPage();
@@ -76,40 +76,50 @@ await kanas.scrollIntoViewIfNeeded();
 await kanas.click({ position: { x: 170, y: 70 } });
 await page.waitForTimeout(100);
 await shot("07-kanas-expanded");
+await page.getByText("今晚住宿", { exact: true }).scrollIntoViewIfNeeded();
+await shot("08-day-1002-jiadengyu-hotel");
+
+await selectDay(4);
+await page.getByText("今晚住宿", { exact: true }).scrollIntoViewIfNeeded();
+await shot("09-day-1003-buerjin-hotel");
+
+await selectDay(5);
+await page.getByText("今晚住宿", { exact: true }).scrollIntoViewIfNeeded();
+await shot("10-day-1004-bole-hotel");
 
 await selectDay(7);
 await page.getByText("今晚住宿", { exact: true }).scrollIntoViewIfNeeded();
-await shot("08-day-1006-hotels-a");
+await shot("11-day-1006-hotels-a");
 await page.locator(".hotel-card").nth(1).scrollIntoViewIfNeeded();
-await shot("09-day-1006-hotels-b");
+await shot("12-day-1006-hotels-b");
 await page.getByText("全部待办", { exact: true }).scrollIntoViewIfNeeded();
-await shot("10-day-1006-todos");
+await shot("13-day-1006-todos");
 
 await page.locator(".bottom-nav button").nth(1).click();
-await shot("11-trip-top");
+await shot("14-trip-top");
 await page.locator(".rental-card").scrollIntoViewIfNeeded();
-await shot("12-trip-bottom");
+await shot("15-trip-bottom");
 
 await page.locator(".bottom-nav button").nth(2).click();
 await page.locator(".amap-canvas").waitFor({ state: "visible", timeout: 16_000 });
 await page.waitForFunction(() => (document.querySelector(".amap-canvas")?.childElementCount ?? 0) > 0, null, { timeout: 8_000 });
-await shot("13-map-route");
+await shot("16-map-route");
 
 await page.locator(".bottom-nav button").nth(3).click();
-await shot("14-checklist-top");
+await shot("17-checklist-top");
 await page.locator(".last-day-card").scrollIntoViewIfNeeded();
-await shot("15-checklist-bottom");
+await shot("18-checklist-bottom");
 
 await page.locator(".bottom-nav button").nth(4).click();
-await shot("16-ledger-identity");
+await shot("19-ledger-identity");
 await page.getByRole("button", { name: "王晶 张秋晨 · 王晶", exact: true }).click();
-await shot("17-ledger-settlement");
+await shot("20-ledger-settlement");
 const total = await page.locator(".ledger-hero strong").textContent();
 const transfer = await page.locator(".transfer").textContent();
-if (!total?.includes("5,760.19")) errors.push(`ledger-total: ${total}`);
-if (!transfer?.includes("319.91") || !transfer.includes("闫寒 · 刘一帆") || !transfer.includes("张秋晨 · 王晶")) errors.push(`ledger-transfer: ${transfer}`);
+if (!total?.includes("12,839.31")) errors.push(`ledger-total: ${total}`);
+if (!transfer?.includes("6,419.65") || !transfer.includes("闫寒 · 刘一帆") || !transfer.includes("张秋晨 · 王晶")) errors.push(`ledger-transfer: ${transfer}`);
 await page.getByRole("button", { name: "＋ 记一笔" }).click();
-await shot("18-ledger-new-expense");
+await shot("21-ledger-new-expense");
 
 const layout = await page.evaluate(() => ({
   viewport: document.documentElement.clientWidth,
@@ -120,7 +130,7 @@ const layout = await page.evaluate(() => ({
 if (layout.scrollWidth > layout.viewport) errors.push(`horizontal-overflow: ${JSON.stringify(layout)}`);
 if (layout.navBottom !== 844 || layout.navHeight < 70) errors.push(`bottom-nav: ${JSON.stringify(layout)}`);
 
-await fs.writeFile(`${output}/report.json`, JSON.stringify({ baseURL, screenshots: 18, layout, errors }, null, 2));
-console.log(JSON.stringify({ output, screenshots: 18, layout, errors }, null, 2));
+await fs.writeFile(`${output}/report.json`, JSON.stringify({ baseURL, screenshots: 21, layout, errors }, null, 2));
+console.log(JSON.stringify({ output, screenshots: 21, layout, errors }, null, 2));
 await browser.close();
 if (errors.length) process.exitCode = 1;

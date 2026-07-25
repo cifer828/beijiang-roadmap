@@ -6,7 +6,7 @@ const failFirstLoad = process.env.MAP_FAIL_ONCE === "1";
 const browser = await chromium.launch({
   headless: true,
   executablePath: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-  args: ["--disable-dev-shm-usage"],
+  args: ["--disable-dev-shm-usage", "--no-proxy-server"],
 });
 const context = await browser.newContext({
   viewport: { width: 390, height: 844 },

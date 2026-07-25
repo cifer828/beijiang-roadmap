@@ -5,7 +5,7 @@ import TripMap from "@/components/TripMap";
 import AmapLink, { AmapNavigationIcon } from "@/components/AmapLink";
 import { BOOKING_CHECKLIST, DAYS, FIXED_CHECKLIST, SIGHTS, amapMarker, xiaohongshuSearch, type Hotel, type Sight, type Todo, type TripDay } from "@/lib/data";
 import { beijingDate, daysUntilTrip, defaultTripDate, TRIP_END, TRIP_START } from "@/lib/date";
-import { DEMO_EXPENSES, FAMILY_A, FAMILY_B, PEOPLE, formatMoney, settle, type Expense, type Person } from "@/lib/ledger";
+import { INITIAL_EXPENSES, FAMILY_A, FAMILY_B, PEOPLE, formatMoney, settle, type Expense, type Person } from "@/lib/ledger";
 import { checklistStore, expenseStore, isCloudMode } from "@/lib/storage";
 
 type Tab = "today" | "trip" | "map" | "checklist" | "ledger";
@@ -331,7 +331,7 @@ export default function Home() {
   const [selected, setSelectedState] = useState(DAYS[0].id);
   const [checklist, setChecklistState] = useState<Record<string, boolean>>({});
   const [identity, setIdentityState] = useState<Person | null>(null);
-  const [expenses, setExpenses] = useState<Expense[]>(DEMO_EXPENSES);
+  const [expenses, setExpenses] = useState<Expense[]>(INITIAL_EXPENSES);
   const [hydrated, setHydrated] = useState(false);
   const [syncMessage, setSyncMessage] = useState("");
 
@@ -344,7 +344,7 @@ export default function Home() {
       checklistStore.load().then((savedChecklist) => { if (savedChecklist) setChecklistState(savedChecklist); }),
       expenseStore.load().then((stored) => {
         if (stored) setExpenses(stored);
-        else if (!isCloudMode) localStorage.setItem("bj-expenses-v1", JSON.stringify(DEMO_EXPENSES));
+        else if (!isCloudMode) localStorage.setItem("bj-expenses-v1", JSON.stringify(INITIAL_EXPENSES));
       }),
     ]).catch(() => undefined).finally(() => setHydrated(true));
   }, []);

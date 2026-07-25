@@ -1,6 +1,6 @@
 import { getStore } from "@netlify/blobs";
 import { createHash } from "node:crypto";
-import { DEMO_EXPENSES, type Expense } from "../../lib/ledger";
+import { INITIAL_EXPENSES, type Expense } from "../../lib/ledger";
 import { MAX_RECEIPT_BYTES, isSafeId, receiptKeyFromUrl, validateExpense } from "../../lib/cloud-model";
 
 const STORE_NAME = "beijiang-roadtrip-2026";
@@ -39,7 +39,7 @@ function parts(request: Request) {
 async function seedExpenses() {
   const data = store();
   if (await data.get(INITIALIZED_KEY)) return;
-  await Promise.all(DEMO_EXPENSES.map((expense) => data.setJSON(`${EXPENSE_PREFIX}${expense.id}`, expense)));
+  await Promise.all(INITIAL_EXPENSES.map((expense) => data.setJSON(`${EXPENSE_PREFIX}${expense.id}`, expense)));
   await data.set(INITIALIZED_KEY, new Date().toISOString());
 }
 

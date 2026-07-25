@@ -67,20 +67,39 @@ describe("迁移数据完整性", () => {
     expect(android.startsWith("androidamap://")).toBe(true);
   });
 
-  it("10 月 3 日至 8 日住宿全部保留待确认状态且 10 月 6 日双方案并存", () => {
-    for (const day of DAYS.filter((item) => item.id >= "2026-10-03" && item.id <= "2026-10-08")) {
-      expect(day.hotels.length).toBeGreaterThan(0);
-      for (const hotel of day.hotels) expect(hotel.status).toBe("保底预订 · 待确认");
+  it("新订单替换 10 月 2—4 日住宿，10 月 6 日双方案继续并存", () => {
+    for (const day of DAYS.filter((item) => item.id >= "2026-10-02" && item.id <= "2026-10-04")) {
+      expect(day.hotels).toHaveLength(1);
+      expect(day.hotels[0].status).toBe("已预订");
     }
     const october6 = DAYS.find((day) => day.id === "2026-10-06")!;
     expect(october6.hotels.map((hotel) => hotel.plan)).toEqual(["Plan A", "Plan B"]);
     expect(october6.todos.some((todo) => todo.title.includes("取消另一间"))).toBe(true);
   });
 
-  it("补充三笔住宿订单的房间数量和总金额", () => {
+  it("完整录入三晚最新酒店订单、金额与房型已知状态", () => {
     const hotels = DAYS.flatMap((day) => day.hotels);
-    expect(hotels.find((hotel) => hotel.id === "altay")).toMatchObject({ room: "大床房 2 间", amount: "¥798（¥399 × 2 间）" });
-    expect(hotels.find((hotel) => hotel.id === "baihaba")).toMatchObject({ room: "客房 2 间", amount: "¥1,904（¥957 + ¥947）" });
-    expect(hotels.find((hotel) => hotel.id === "buerjin")).toMatchObject({ room: "库米拉·独栋木屋家庭房 1 间（4 人入住，含早）", amount: "¥947" });
+    expect(hotels.find((hotel) => hotel.id === "jiadengyu-jinmeijia")).toMatchObject({
+      amount: "¥1,074.34（¥550 + ¥524.34）",
+      order: "1128149533658416 / 1128149533633452",
+    });
+    expect(hotels.find((hotel) => hotel.id === "buerjin-zhefei")).toMatchObject({
+      amount: "¥1,202（另使用积分抵扣 ¥22）",
+      order: "1128149551951752",
+    });
+    expect(hotels.find((hotel) => hotel.id === "bole-ji")).toMatchObject({
+      room: "高级大床房 2 间",
+      amount: "¥701.62",
+      order: "入住码 DFW22L",
+    });
+  });
+
+  it("按最新计划保留 10 月 2—8 日关键自驾时长", () => {
+    expect(DAYS.find((day) => day.id === "2026-10-02")?.drive).toContain("自驾约 2 小时");
+    expect(DAYS.find((day) => day.id === "2026-10-04")?.drive).toContain("直达约 8 小时");
+    expect(DAYS.find((day) => day.id === "2026-10-05")?.route).toContain("博乐");
+    expect(DAYS.find((day) => day.id === "2026-10-06")?.title).toContain("阔克苏");
+    expect(DAYS.find((day) => day.id === "2026-10-07")?.route).toContain("唐布拉");
+    expect(DAYS.find((day) => day.id === "2026-10-08")?.todos.some((todo) => todo.title.includes("独库公路"))).toBe(true);
   });
 });
