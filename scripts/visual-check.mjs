@@ -78,6 +78,8 @@ await page.getByText("全部景点", { exact: true }).scrollIntoViewIfNeeded();
 await shot("05-day-1001-sights");
 await page.getByText("今晚住宿", { exact: true }).scrollIntoViewIfNeeded();
 await shot("06-day-1001-hotel");
+await page.locator(".hotel-receipts").scrollIntoViewIfNeeded();
+await shot("06b-day-1001-order");
 
 await selectDay(3);
 const kanas = page.locator(".sight-card").filter({ has: page.getByRole("heading", { name: "喀纳斯湖", exact: true }) });
@@ -87,18 +89,26 @@ await page.waitForTimeout(100);
 await shot("07-kanas-expanded");
 await page.getByText("今晚住宿", { exact: true }).scrollIntoViewIfNeeded();
 await shot("08-day-1002-jiadengyu-hotel");
+await page.locator(".hotel-receipts").scrollIntoViewIfNeeded();
+await shot("08b-day-1002-jiadengyu-orders");
 
 await selectDay(4);
 await page.getByText("今晚住宿", { exact: true }).scrollIntoViewIfNeeded();
 await shot("09-day-1003-buerjin-hotel");
+await page.locator(".hotel-receipts").scrollIntoViewIfNeeded();
+await shot("09b-day-1003-buerjin-order");
 
 await selectDay(5);
 await page.getByText("今晚住宿", { exact: true }).scrollIntoViewIfNeeded();
 await shot("10-day-1004-bole-hotel");
+await page.locator(".hotel-receipts").scrollIntoViewIfNeeded();
+await shot("10b-day-1004-bole-order");
 
 await selectDay(7);
 await page.getByText("今晚住宿", { exact: true }).scrollIntoViewIfNeeded();
 await shot("11-day-1006-hotel");
+await page.locator(".hotel-receipts").scrollIntoViewIfNeeded();
+await shot("11b-day-1006-order");
 await page.getByText("全部待办", { exact: true }).scrollIntoViewIfNeeded();
 await shot("12-day-1006-todos");
 
