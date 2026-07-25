@@ -15,7 +15,7 @@ export type Expense = {
 
 export const INITIAL_EXPENSES: Expense[] = [
   { id: "hotel-urumqi-first", title: "9/29 乌鲁木齐住宿", amountCents: 49890, paidBy: "张秋晨", occurredAt: "2026-09-29T14:00", note: "桔子乌鲁木齐天山国际机场砂之船奥莱酒店 · 按入住日记账", images: [] },
-  { id: "rental-tank300", title: "坦克 300 租车", amountCents: 320000, paidBy: "张秋晨", occurredAt: "2026-09-30T09:00", note: "9/30 酒店取车，10/9 机场还车", images: [] },
+  { id: "rental-tank300", title: "坦克 300 租车", amountCents: 223100, paidBy: "张秋晨", occurredAt: "2026-09-30T09:00", note: "滴滴租车 · 租金 ¥1,821 + 手续费 ¥40 + 基础保障 ¥270 + 优享保障 ¥400 − 优惠 ¥300 · 9/30 酒店取车，10/9 机场还车", images: [] },
   { id: "hotel-hemu", title: "10/1 禾木住宿", amountCents: 256019, paidBy: "张秋晨", occurredAt: "2026-10-01T12:00", note: "纳兰禾谷民宿 · 订单 1128149389793495 · 按入住日记账", images: [] },
   { id: "hotel-jiadengyu", title: "10/2 贾登峪住宿", amountCents: 107434, paidBy: "张秋晨", occurredAt: "2026-10-02T14:00", note: "喀纳斯金美佳酒店 · 两笔订单 ¥550 + ¥524.34", images: [] },
   { id: "hotel-buerjin-zhefei", title: "10/3 布尔津住宿", amountCents: 120200, paidBy: "张秋晨", occurredAt: "2026-10-03T14:00", note: "喆啡酒店（布尔津友谊峰路店）· 另使用积分抵扣 ¥22", images: [] },
