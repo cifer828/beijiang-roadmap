@@ -129,7 +129,7 @@ function SightCard({ sight, index }: { sight: Sight; index: number }) {
         <div className="sight-details" onClick={(event) => event.stopPropagation()}>
           <dl><dt>门票</dt><dd>{sight.ticket}</dd><dt>预约</dt><dd>{sight.reservation}</dd><dt>开放</dt><dd>{sight.opening}</dd><dt>建议停留</dt><dd>{sight.duration}</dd></dl>
           <h4>注意事项</h4><p>{sight.caution} 国庆客流集中，预留停车与排队；天气、道路和开放规则可能临时调整。</p>
-          <div className="source-links"><a href={xiaohongshuSearch(sight.search)} target="_blank" rel="noreferrer">图片参考 · 小红书看同地点 ↗</a><a href={sight.policyUrl} target="_blank" rel="noreferrer">来源：新疆发布及景区票价通知 · 核验 2026-07-20 ↗</a></div>
+          <div className="source-links"><a href={xiaohongshuSearch(sight.search)} target="_blank" rel="noreferrer">同地点参考 · 小红书 ↗</a><a href={sight.policyUrl} target="_blank" rel="noreferrer">来源：{sight.source} ↗</a></div>
         </div>
       )}
     </article>
@@ -144,15 +144,25 @@ function HotelCard({ hotel }: { hotel: Hotel }) {
   return (
     <article className="hotel-card card">
       <div className="hotel-cover">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={hotel.image} alt={hotel.name} loading="lazy" onError={(event) => { event.currentTarget.style.display = "none"; }} />
         <div className="cover-shade" />
-        <div className="hotel-badges">{hotel.plan && <span>{hotel.plan}</span>}<span className="booked">已预订</span>{hotel.status.includes("保底") && <span className="pending">保底预订 · 待确认</span>}</div>
+        <div className="hotel-badges"><span className="booked">已预订</span>{hotel.status.includes("保底") && <span className="pending">保底预订 · 待确认</span>}</div>
         <span className="platform">{hotel.platform}</span>
         <div className="hotel-copy"><h3>{hotel.name}</h3><p>{hotel.address}</p></div>
         <NavButton iconOnly label={`在高德查看${hotel.name}`} className="hotel-place-icon" href={amapMarker(hotel)}>地点</NavButton>
       </div>
       <dl className="hotel-facts">{facts.map(([label, value]) => <div key={label}><dt>{label}</dt><dd className={label === "金额" ? "amount" : ""}>{value}</dd></div>)}</dl>
+      {hotel.receipts?.length ? (
+        <div className="hotel-receipts">
+          <div><b>订单截图</b><span>点击缩略图查看原图</span></div>
+          <div>{hotel.receipts.map((src, index) => (
+            <a href={src} target="_blank" rel="noreferrer" key={src} aria-label={`查看${hotel.name}订单截图${index + 1}`}>
+              <span>订单 {index + 1}</span>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={src} alt={`${hotel.name}订单截图${index + 1}`} loading="lazy" onError={(event) => { event.currentTarget.style.display = "none"; }} />
+            </a>
+          ))}</div>
+        </div>
+      ) : <p className="hotel-no-receipt">阿勒泰壹号订单截图待补</p>}
     </article>
   );
 }

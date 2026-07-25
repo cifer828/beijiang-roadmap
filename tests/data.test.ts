@@ -2,9 +2,9 @@ import { describe, expect, it } from "vitest";
 import { DAYS, POINTS, SIGHTS, amapAppMarker, amapMarker, navigationTarget } from "../lib/data";
 
 describe("迁移数据完整性", () => {
-  it("包含 11 天、21 个景点，并只为已核对落点生成兼容导航", () => {
+  it("包含 11 天、22 个景点，并只为已核对落点生成兼容导航", () => {
     expect(DAYS).toHaveLength(11);
-    expect(Object.keys(SIGHTS)).toHaveLength(21);
+    expect(Object.keys(SIGHTS)).toHaveLength(22);
     for (const sight of Object.values(SIGHTS)) {
       const target = navigationTarget(sight);
       const link = amapMarker(sight);
@@ -35,6 +35,7 @@ describe("迁移数据完整性", () => {
     expect(POINTS.baihaba).toMatchObject({ lng: 86.783596, lat: 48.695717 });
     expect(POINTS.wucaitan).toMatchObject({ lng: 86.680702, lat: 47.837537 });
     expect(POINTS.ghost).toMatchObject({ lng: 85.733205, lat: 46.135149 });
+    expect(POINTS.tangbula).toMatchObject({ lng: 83.694597, lat: 43.691251 });
     expect(amapMarker(POINTS.ahe)).toBeNull();
     expect(amapMarker(POINTS.kalajun)).toBeNull();
   });
@@ -67,14 +68,15 @@ describe("迁移数据完整性", () => {
     expect(android.startsWith("androidamap://")).toBe(true);
   });
 
-  it("新订单替换 10 月 2—4 日住宿，10 月 6 日双方案继续并存", () => {
+  it("新订单替换 10 月 2—4 日住宿，10 月 6 日只保留已选全季", () => {
     for (const day of DAYS.filter((item) => item.id >= "2026-10-02" && item.id <= "2026-10-04")) {
       expect(day.hotels).toHaveLength(1);
       expect(day.hotels[0].status).toBe("已预订");
     }
     const october6 = DAYS.find((day) => day.id === "2026-10-06")!;
-    expect(october6.hotels.map((hotel) => hotel.plan)).toEqual(["Plan A", "Plan B"]);
-    expect(october6.todos.some((todo) => todo.title.includes("取消另一间"))).toBe(true);
+    expect(october6.hotels).toHaveLength(1);
+    expect(october6.hotels[0]).toMatchObject({ id: "teks", status: "已预订 · 已选定" });
+    expect(october6.todos.some((todo) => todo.title.includes("取消另一间"))).toBe(false);
   });
 
   it("完整录入三晚最新酒店订单、金额与房型已知状态", () => {
@@ -92,14 +94,18 @@ describe("迁移数据完整性", () => {
       amount: "¥701.62",
       order: "入住码 DFW22L",
     });
+    expect(hotels.find((hotel) => hotel.id === "altay")?.receipts).toBeUndefined();
+    expect(hotels.flatMap((hotel) => hotel.receipts ?? [])).toHaveLength(10);
   });
 
   it("按最新计划保留 10 月 2—8 日关键自驾时长", () => {
-    expect(DAYS.find((day) => day.id === "2026-10-02")?.drive).toContain("自驾约 2 小时");
+    expect(DAYS.find((day) => day.id === "2026-10-01")?.drive).toContain("禾木区间车约 1 小时");
+    expect(DAYS.find((day) => day.id === "2026-10-02")?.drive).toContain("区间车约 3 小时");
+    expect(DAYS.find((day) => day.id === "2026-10-03")?.drive).toContain("区间车往返约 2 小时");
     expect(DAYS.find((day) => day.id === "2026-10-04")?.drive).toContain("直达约 8 小时");
     expect(DAYS.find((day) => day.id === "2026-10-05")?.route).toContain("博乐");
     expect(DAYS.find((day) => day.id === "2026-10-06")?.title).toContain("阔克苏");
-    expect(DAYS.find((day) => day.id === "2026-10-07")?.route).toContain("唐布拉");
+    expect(DAYS.find((day) => day.id === "2026-10-07")?.sightIds).toContain("tangbula");
     expect(DAYS.find((day) => day.id === "2026-10-08")?.todos.some((todo) => todo.title.includes("独库公路"))).toBe(true);
   });
 });

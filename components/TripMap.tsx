@@ -65,7 +65,7 @@ export default function TripMap({ active, day, onChangeDay, onShowDay }: Props) 
       script = document.createElement("script");
       script.dataset.amapLoader = "true";
       script.dataset.amapState = "loading";
-      script.src = `https://webapi.amap.com/maps?v=2.0&key=${encodeURIComponent(apiKey)}&plugin=AMap.Geolocation`;
+      script.src = `https://webapi.amap.com/maps?v=2.0&key=${encodeURIComponent(apiKey)}`;
       script.async = true;
     }
 

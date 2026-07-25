@@ -26,9 +26,7 @@ export type Sight = Point & {
 
 export type Hotel = Point & {
   id: string;
-  image: string;
   platform: string;
-  plan?: "Plan A" | "Plan B";
   status: string;
   room: string;
   checkIn: string;
@@ -38,6 +36,7 @@ export type Hotel = Point & {
   contact?: string;
   cancel?: string;
   address: string;
+  receipts?: string[];
 };
 
 export type TripDay = {
@@ -114,7 +113,6 @@ export const POINTS: Record<string, Point> = {
   teksHotel: { name: "全季特克斯九宫新城酒店", lng: 81.865028, lat: 43.22108 },
   kalajun: { name: "喀拉峻草原", lng: 82.1686, lat: 43.1027, navigation: false },
   kuokesu: { name: "阔克苏大峡谷", lng: 81.929625, lat: 43.033006, navigation: false },
-  kalajunHotel: { name: "喀拉峻花间营·云驰谷", lng: 82.226612, lat: 43.087324 },
   nalati: {
     name: "那拉提草原",
     lng: 84.0392,
@@ -127,7 +125,7 @@ export const POINTS: Record<string, Point> = {
     lat: 43.275248,
     navigation: { name: "库尔德宁景区游客中心", lng: 82.691226, lat: 43.275248 },
   },
-  tangbula: { name: "唐布拉草原", lng: 84.104, lat: 43.855 },
+  tangbula: { name: "唐布拉草原", lng: 83.694597, lat: 43.691251 },
   xinyuanHotel: { name: "汉庭新源县天鹅湖酒店", lng: 83.238143, lat: 43.443081 },
 };
 
@@ -186,21 +184,25 @@ export const SIGHTS: Record<string, Sight> = {
   kalajun: sight("kalajun", POINTS.kuokesu, "kalajun.jpg", "约半天", "门票、观光车与游船价格出发前复核", "出发前核对开放项目、游客中心与停止入园时间", "喀拉峻景区内的峡谷、河流与曲线草原景观。", "10 月天气影响明显；当前只确认景区范围，未核准唯一自驾落点，因此不展示导航按钮。", "阔克苏大峡谷", KALAJUN_POLICY),
   nalati: sight("nalati", POINTS.nalati, "nalati.jpg", "至少 4 小时", "动态票价，出发前复核", "“智游那拉提”开放 7 日内自驾预约；司机驾龄满 3 年", "河谷草原与盘山景观，按预约线路行驶。", "设置最晚离园时间，避免天黑走山路。", "那拉提草原", NALATI_POLICY),
   kuerdening: sight("kuerdening", POINTS.kuerdening, "kuerdening.jpg", "2—3 小时", "素材参考 60 元，出发前复核", "素材参考提前 3 天，出发前复核", "雪岭云杉与河谷森林，是那拉提之外的备选。", "与那拉提二选一，路况和天气优先。", "库尔德宁"),
+  tangbula: {
+    ...sight("tangbula", POINTS.tangbula, "tangbula.jpg", "2—4 小时", "百里画廊沿线以开放道路为主，收费项目出发前复核", "无需统一预约；具体项目按现场规则", "沿 S315 穿行喀什河谷、雪山、云杉和草原，是当天百里画廊自驾重点。", "10 月可能降雪或结冰，只在正规停车点停靠，并为返新源预留 2 小时。", "唐布拉百里画廊", "https://en.people.cn/n3/2024/0726/c90000-20198686.html"),
+    source: "人民日报海外网 · 唐布拉草原实景",
+  },
 };
 
-const hotel = (data: Omit<Hotel, "image"> & { image: string }): Hotel => ({ ...data, image: `/images/hotels/${data.image}` });
+const hotel = (data: Hotel): Hotel => data;
+const receipt = (expenseId: string, imageId: string) => `/api/trip-data/receipts/${expenseId}/${imageId}`;
 
-const urumqiFirst = hotel({ id: "urumqi-first", ...POINTS.urumqiHotel, image: "urumqi-orange.jpg", platform: "华住会", status: "已预订", room: "高级大床房 2 间", checkIn: "9/29 14:00 后", checkOut: "9/30 16:00 前", amount: "¥498.90", order: "入住码 FBABMD", contact: "张** 177****2580", cancel: "9/28 23:00 前免费取消", address: "头屯河区豫清路1329号产业培育基地B地块6号楼3单元（一层至七层）" });
-const altayHotel = hotel({ id: "altay", ...POINTS.altayHotel, name: "阿勒泰壹号民宿（五百里风情街店）", image: "altay-one.jpg", platform: "美团", status: "已预订", room: "大床房 2 间", checkIn: "9/30 14:00 后", checkOut: "10/1 12:00 前（出发前复核）", amount: "¥798（¥399 × 2 间）", address: "阿勒泰市五百里风情街二期二号楼二层" });
-const hemuHotel = hotel({ id: "hemu", ...POINTS.hemuHotel, name: "纳兰禾谷民宿（禾木风景区店）", image: "hemu-nalan.jpg", platform: "携程", status: "已预订", room: "Field·文艺田园复古 Loft 家庭独栋别墅 1 间", checkIn: "10/1 12:00 后", checkOut: "10/2 12:00 前", amount: "¥2,560.19", order: "订单 1128149389793495", cancel: "9/24 23:59 前免费取消", address: "新疆布尔津禾木喀纳斯乡禾木村 343 号" });
-const jiadengyuHotel = hotel({ id: "jiadengyu-jinmeijia", ...POINTS.jiadengyuHotel, image: "jiadengyu-jinmeijia.jpg", platform: "携程", status: "已预订", room: "2 笔订单 · 房型待补", checkIn: "10/2 14:00 后", checkOut: "10/3 14:00 前", amount: "¥1,074.34（¥550 + ¥524.34）", order: "1128149533658416 / 1128149533633452", cancel: "10/1 23:59 前免费取消，此后不可取消或修改", address: "新疆布尔津贾登峪一区一字楼 1 栋" });
-const buerjinZhefei = hotel({ id: "buerjin-zhefei", ...POINTS.buerjinZhefei, image: "buerjin-zhefei.jpg", platform: "携程", status: "已预订", room: "房型与间数待补", checkIn: "10/3 14:00 后", checkOut: "10/4 14:00 前", amount: "¥1,202（另使用积分抵扣 ¥22）", order: "1128149551951752", cancel: "订单预订成功后不可取消或修改", address: "新疆布尔津友谊峰路 5 号" });
-const boleHotel = hotel({ id: "bole-ji", ...POINTS.boleHotel, image: "bole-ji.jpg", platform: "华住会", status: "已预订", room: "高级大床房 2 间", checkIn: "10/4 14:00 后", checkOut: "10/5 16:00 前", amount: "¥701.62", order: "入住码 DFW22L", contact: "张** 177****2580", cancel: "10/4 18:00 前免费取消", address: "博乐青得里大街 76 号（J6-1-70-1）" });
-const yiningHotel = hotel({ id: "yining", ...POINTS.yiningHotel, name: "桔子伊宁万容广场酒店", image: "yining-orange.jpg", platform: "华住会", status: "保底预订 · 待确认", room: "高级大床房 2 间", checkIn: "10/5 14:00 后", checkOut: "10/6 16:00 前", amount: "¥608.38", order: "入住码 DCA22S", contact: "张** 177****2580", cancel: "10/4 23:00 前免费取消", address: "伊宁市山东路心悦龙庭 446 号 A 座 1 号楼" });
-const teksHotel = hotel({ id: "teks", ...POINTS.teksHotel, name: "全季特克斯九宫新城酒店", image: "teks-ji.jpg", platform: "华住会", plan: "Plan A", status: "保底预订 · 待确认", room: "商务大床房 2 间", checkIn: "10/6 14:00 后", checkOut: "10/7 16:00 前", amount: "¥498.90", order: "入住码 DKW254", contact: "张** 186****2650", cancel: "10/5 23:00 前免费取消", address: "九宫新城经六路综合商业广场 A1 栋" });
-const kalajunHotel = hotel({ id: "kalajun", ...POINTS.kalajunHotel, name: "新疆喀拉峻花间营·云驰谷", image: "kalajun-blossom.jpg", platform: "华住会", plan: "Plan B", status: "保底预订 · 待确认", room: "星沉经典大床房 2 间", checkIn: "10/6 14:00 后", checkOut: "10/7 16:00 前", amount: "¥1,528.46", order: "入住码 DG624X", contact: "张** 177****2580", cancel: "10/3 18:00 前免费取消", address: "特克斯县柯尔干布拉克村托斯旅游点 354 号" });
-const xinyuanHotel = hotel({ id: "xinyuan", ...POINTS.xinyuanHotel, name: "汉庭新源县天鹅湖酒店", image: "xinyuan-hanting.jpg", platform: "华住会", status: "保底预订 · 待确认", room: "高级大床房 2 间", checkIn: "10/7 14:00 后", checkOut: "10/8 16:00 前", amount: "¥467.62", order: "入住码 DXA24W", contact: "张** 177****2580", cancel: "10/6 23:00 前免费取消", address: "新源县新源镇江额尔森西街 005 号 1 号楼" });
-const urumqiLast = hotel({ id: "urumqi-last", ...POINTS.urumqiHotel, image: "urumqi-orange.jpg", platform: "华住会", status: "保底预订 · 待确认", room: "高级大床房 2 间", checkIn: "10/8 14:00 后", checkOut: "10/9 16:00 前", amount: "¥498.90", order: "入住码 FCE23Z", contact: "张** 177****2580", cancel: "10/7 23:00 前免费取消", address: "头屯河区豫清路1329号产业培育基地B地块6号楼3单元（一层至七层）" });
+const urumqiFirst = hotel({ id: "urumqi-first", ...POINTS.urumqiHotel, platform: "华住会", status: "已预订", room: "高级大床房 2 间", checkIn: "9/29 14:00 后", checkOut: "9/30 16:00 前", amount: "¥498.90", order: "入住码 FBABMD", contact: "张** 177****2580", cancel: "9/28 23:00 前免费取消", address: "头屯河区豫清路1329号产业培育基地B地块6号楼3单元（一层至七层）", receipts: [receipt("hotel-urumqi-first", "order-fbabmd")] });
+const altayHotel = hotel({ id: "altay", ...POINTS.altayHotel, name: "阿勒泰壹号民宿（五百里风情街店）", platform: "美团", status: "已预订", room: "大床房 2 间", checkIn: "9/30 14:00 后", checkOut: "10/1 12:00 前（出发前复核）", amount: "¥798（¥399 × 2 间）", address: "阿勒泰市五百里风情街二期二号楼二层" });
+const hemuHotel = hotel({ id: "hemu", ...POINTS.hemuHotel, name: "纳兰禾谷民宿（禾木风景区店）", platform: "携程", status: "已预订", room: "Field·文艺田园复古 Loft 家庭独栋别墅 1 间", checkIn: "10/1 12:00 后", checkOut: "10/2 12:00 前", amount: "¥2,560.19", order: "订单 1128149389793495", cancel: "9/24 23:59 前免费取消", address: "新疆布尔津禾木喀纳斯乡禾木村 343 号", receipts: [receipt("hotel-hemu", "order-1128149389793495")] });
+const jiadengyuHotel = hotel({ id: "jiadengyu-jinmeijia", ...POINTS.jiadengyuHotel, platform: "携程", status: "已预订", room: "两笔订单 · 已知 1 间阁楼星空房，另一笔房型待补", checkIn: "10/2 14:00 后", checkOut: "10/3 14:00 前", amount: "¥1,074.34（¥550 + ¥524.34）", order: "1128149533658416 / 1128149533633452", cancel: "10/1 23:59 前免费取消，此后不可取消或修改", address: "新疆布尔津贾登峪一区一字楼 1 栋", receipts: [receipt("hotel-jiadengyu", "order-1128149533658416"), receipt("hotel-jiadengyu", "order-1128149533633452")] });
+const buerjinZhefei = hotel({ id: "buerjin-zhefei", ...POINTS.buerjinZhefei, platform: "携程", status: "已预订", room: "房型与间数待补", checkIn: "10/3 14:00 后", checkOut: "10/4 14:00 前", amount: "¥1,202（另使用积分抵扣 ¥22）", order: "1128149551951752", cancel: "订单预订成功后不可取消或修改", address: "新疆布尔津友谊峰路 5 号", receipts: [receipt("hotel-buerjin-zhefei", "order-1128149551951752")] });
+const boleHotel = hotel({ id: "bole-ji", ...POINTS.boleHotel, platform: "华住会", status: "已预订", room: "高级大床房 2 间", checkIn: "10/4 14:00 后", checkOut: "10/5 16:00 前", amount: "¥701.62", order: "入住码 DFW22L", contact: "张** 177****2580", cancel: "10/4 18:00 前免费取消", address: "博乐青得里大街 76 号（J6-1-70-1）", receipts: [receipt("hotel-bole-ji", "order-dfw22l")] });
+const yiningHotel = hotel({ id: "yining", ...POINTS.yiningHotel, name: "桔子伊宁万容广场酒店", platform: "华住会", status: "保底预订 · 待确认", room: "高级大床房 2 间", checkIn: "10/5 14:00 后", checkOut: "10/6 16:00 前", amount: "¥608.38", order: "入住码 DCA22S", contact: "张** 177****2580", cancel: "10/4 23:00 前免费取消", address: "伊宁市山东路心悦龙庭 446 号 A 座 1 号楼", receipts: [receipt("hotel-yining", "order-dca22s")] });
+const teksHotel = hotel({ id: "teks", ...POINTS.teksHotel, name: "全季特克斯九宫新城酒店", platform: "华住会", status: "已预订 · 已选定", room: "商务大床房 2 间", checkIn: "10/6 14:00 后", checkOut: "10/7 16:00 前", amount: "¥498.90", order: "入住码 DKW254", contact: "张** 186****2650", cancel: "10/5 23:00 前免费取消", address: "九宫新城经六路综合商业广场 A1 栋", receipts: [receipt("hotel-teks-plan-a", "order-dkw254")] });
+const xinyuanHotel = hotel({ id: "xinyuan", ...POINTS.xinyuanHotel, name: "汉庭新源县天鹅湖酒店", platform: "华住会", status: "保底预订 · 待确认", room: "高级大床房 2 间", checkIn: "10/7 14:00 后", checkOut: "10/8 16:00 前", amount: "¥467.62", order: "入住码 DXA24W", contact: "张** 177****2580", cancel: "10/6 23:00 前免费取消", address: "新源县新源镇江额尔森西街 005 号 1 号楼", receipts: [receipt("hotel-xinyuan", "order-dxa24w")] });
+const urumqiLast = hotel({ id: "urumqi-last", ...POINTS.urumqiHotel, platform: "华住会", status: "保底预订 · 待确认", room: "高级大床房 2 间", checkIn: "10/8 14:00 后", checkOut: "10/9 16:00 前", amount: "¥498.90", order: "入住码 FCE23Z", contact: "张** 177****2580", cancel: "10/7 23:00 前免费取消", address: "头屯河区豫清路1329号产业培育基地B地块6号楼3单元（一层至七层）", receipts: [receipt("hotel-urumqi-last", "order-fce23z")] });
 
 export const DAYS: TripDay[] = [
   {
@@ -218,7 +220,7 @@ export const DAYS: TripDay[] = [
     ], routePoints: [POINTS.airport, POINTS.urumqiHotel],
   },
   {
-    id: "2026-09-30", day: 2, date: "9/30 周三", shortDate: "9/30", month: "三", dayOfMonth: "30", week: "周三", title: "乌鲁木齐 → 乌伦古湖 → 阿勒泰", route: "S21 沙漠高速 · 乌伦古湖黄金海岸", drive: "约 5—6 小时", distance: "约 510km", timeline: [
+    id: "2026-09-30", day: 2, date: "9/30 周三", shortDate: "9/30", month: "三", dayOfMonth: "30", week: "周三", title: "乌鲁木齐 → 乌伦古湖 → 阿勒泰", route: "S21 沙漠高速 · 乌伦古湖黄金海岸", drive: "自驾约 5—6 小时", distance: "约 510km", timeline: [
       { time: "09:00", title: "酒店取车", detail: "坦克 300 送车上门，拍摄车况并核对保险", point: POINTS.urumqiHotel },
       { time: "下午", title: "乌伦古湖", detail: "黄金海岸停留 1—2 小时", point: POINTS.ulungur },
       { time: "傍晚", title: "阿勒泰入住", detail: "有余量再去桦林公园", point: POINTS.altayHotel },
@@ -229,10 +231,10 @@ export const DAYS: TripDay[] = [
     ], cautions: ["驾驶员轮换，留意沙漠高速横风。"], suggestion: "纯驾驶约 5 小时，实际至少按 6—7 小时含停留安排。", routePoints: [POINTS.urumqiHotel, POINTS.ulungur, POINTS.altayHotel],
   },
   {
-    id: "2026-10-01", day: 3, date: "10/1 周四", shortDate: "10/1", month: "四", dayOfMonth: "1", week: "周四", title: "阿禾公路穿越，抵达禾木", route: "阿勒泰 → 阿禾公路 → 禾木村", drive: "约 5—7 小时", timeline: [
+    id: "2026-10-01", day: 3, date: "10/1 周四", shortDate: "10/1", month: "四", dayOfMonth: "1", week: "周四", title: "阿禾公路穿越，抵达禾木", route: "阿勒泰 → 阿禾公路 → 禾木村", drive: "自驾约 5—7 小时 + 禾木区间车约 1 小时", timeline: [
       { time: "08:00", title: "阿勒泰出发", detail: "沿阿禾公路前往禾木，沿途按安全位置停车", point: POINTS.altayHotel },
       { time: "途中", title: "阿禾公路", detail: "山谷、河流与森林景观，天气可能影响通行", point: POINTS.ahe },
-      { time: "下午", title: "禾木换乘中心", detail: "停车、换乘区间车、携带过夜行李", point: POINTS.hemuTransfer },
+      { time: "下午", title: "禾木换乘中心", detail: "停车后换乘区间车进村，车程约 1 小时，携带过夜行李", point: POINTS.hemuTransfer },
       { time: "傍晚", title: "禾木村漫步", detail: "新村、老村、木屋、白桦林、援疆桥", point: POINTS.hemu },
     ], sightIds: ["ahe", "hemuNew", "hemuOld", "bridge", "hadeng"], hotels: [hemuHotel], todos: [
       { id: "book-hemu", title: "购买禾木景区票", detail: "实名购票并确认区间车包含范围 · 建议提前 1—3 天", important: true, booking: true },
@@ -241,7 +243,7 @@ export const DAYS: TripDay[] = [
     ], cautions: ["禾木旺季门票官方基准 50 元/人，区间车另计；出发前以官方购票入口和公示为准。", "国庆第一天客流集中，换乘与排队可能明显超时。"], suggestion: "详细路线安排内容较满；若抵达较晚，哈登观景台与村内散步二选一，次日不要压缩喀纳斯时间。", routePoints: [POINTS.altayHotel, POINTS.ahe, POINTS.hemuTransfer, POINTS.hemuHotel],
   },
   {
-    id: "2026-10-02", day: 4, date: "10/2 周五", shortDate: "10/2", month: "五", dayOfMonth: "2", week: "周五", title: "两段换乘进喀纳斯，夜宿贾登峪", route: "禾木村 → 禾木游客中心 → 贾登峪 → 喀纳斯 → 贾登峪", drive: "自驾约 2 小时 + 区间车约 2 小时", timeline: [
+    id: "2026-10-02", day: 4, date: "10/2 周五", shortDate: "10/2", month: "五", dayOfMonth: "2", week: "周五", title: "三段换乘进出喀纳斯，夜宿贾登峪", route: "禾木村 → 禾木游客中心 → 贾登峪 → 喀纳斯 → 贾登峪", drive: "自驾约 2 小时 + 区间车约 3 小时", timeline: [
       { time: "09:00", title: "乘第一班区间车离开禾木", detail: "禾木村到禾木游客中心约 1 小时", point: POINTS.hemu },
       { time: "约 10:00", title: "自驾前往贾登峪", detail: "禾木游客中心到贾登峪约 2 小时", point: POINTS.hemuTransfer },
       { time: "约 12:00", title: "换乘进入喀纳斯", detail: "贾登峪到喀纳斯约 1 小时", point: POINTS.jiadengyuHotel },
@@ -251,10 +253,10 @@ export const DAYS: TripDay[] = [
       { id: "book-kanas", title: "购买喀纳斯景区票", detail: "核对一进/二进、区间车与观鱼台票，建议提前 3—7 天", important: true, booking: true },
       { id: "d4-transfer", title: "复核三段区间车班次", detail: "重点确认 09:00 禾木首班与 20:00 喀纳斯末班，出发前以景区公告为准", important: true },
       { id: "d4-offline", title: "下载离线地图", detail: "禾木—贾登峪—喀纳斯沿线信号可能不稳定" },
-    ], cautions: ["当天包含 2 小时自驾、两段区间车和 5—6 小时游览，排队会直接压缩景区时间。", "20:00 为计划中的末班时间，必须在出发前向景区再次确认。"], suggestion: "优先三湾和湖区；若观鱼台排队或天气不佳，果断取消，确保赶上返回贾登峪的末班车。", routePoints: [POINTS.hemuHotel, POINTS.hemuTransfer, POINTS.jiadengyuHotel, POINTS.kanasCenter, POINTS.shenxian, POINTS.moon, POINTS.wolong, POINTS.kanas, POINTS.jiadengyuHotel],
+    ], cautions: ["当天包含 2 小时自驾、三段区间车共约 3 小时和 5—6 小时游览，排队会直接压缩景区时间。", "20:00 为计划中的末班时间，必须在出发前向景区再次确认。"], suggestion: "优先三湾和湖区；若观鱼台排队或天气不佳，果断取消，确保赶上返回贾登峪的末班车。", routePoints: [POINTS.hemuHotel, POINTS.hemuTransfer, POINTS.jiadengyuHotel, POINTS.kanasCenter, POINTS.shenxian, POINTS.moon, POINTS.wolong, POINTS.kanas, POINTS.jiadengyuHotel],
   },
   {
-    id: "2026-10-03", day: 5, date: "10/3 周六", shortDate: "10/3", month: "六", dayOfMonth: "3", week: "周六", title: "喀纳斯二进，白哈巴 / 五彩滩二选一", route: "贾登峪 → 喀纳斯 → 贾登峪 → 白哈巴（A）/ 五彩滩（B）→ 布尔津", drive: "基础自驾约 2 小时；Plan A 另约 2.5 小时", timeline: [
+    id: "2026-10-03", day: 5, date: "10/3 周六", shortDate: "10/3", month: "六", dayOfMonth: "3", week: "周六", title: "喀纳斯二进，白哈巴 / 五彩滩二选一", route: "贾登峪 → 喀纳斯 → 贾登峪 → 白哈巴（A）/ 五彩滩（B）→ 布尔津", drive: "区间车往返约 2 小时；Plan B 自驾约 2 小时 / Plan A 道路约 4.5 小时", timeline: [
       { time: "08:00", title: "乘第一班车进入喀纳斯", detail: "贾登峪到喀纳斯约 1 小时", point: POINTS.jiadengyuHotel },
       { time: "上午—下午", title: "继续游览喀纳斯", detail: "补足前一天未完成的湖区、三湾或观鱼台", point: POINTS.kanas },
       { time: "离园时", title: "返回贾登峪取车", detail: "喀纳斯到贾登峪区间车约 1 小时", point: POINTS.kanasCenter },
@@ -267,7 +269,7 @@ export const DAYS: TripDay[] = [
     ], cautions: ["白哈巴游玩时长尚未确定，Plan A 必须给 2.5 小时返布尔津自驾留足天光。", "Plan B 是否看五彩滩，以当日日落、停止售票和体力为准。"], suggestion: "喀纳斯玩尽兴后再决策：只要离园偏晚，就直接执行 Plan B。地图当天路线按 Plan B 绘制，Plan A 白哈巴从景点卡打开。", routePoints: [POINTS.jiadengyuHotel, POINTS.kanasCenter, POINTS.kanas, POINTS.jiadengyuHotel, POINTS.wucaitan, POINTS.buerjinZhefei],
   },
   {
-    id: "2026-10-04", day: 6, date: "10/4 周日", shortDate: "10/4", month: "日", dayOfMonth: "4", week: "周日", title: "布尔津长途直达博乐", route: "布尔津 → 世界魔鬼城（可途经）→ 奎屯吃晚饭 → 博乐", drive: "直达约 8 小时；途经魔鬼城约 8.5 小时", timeline: [
+    id: "2026-10-04", day: 6, date: "10/4 周日", shortDate: "10/4", month: "日", dayOfMonth: "4", week: "周日", title: "布尔津长途直达博乐", route: "布尔津 → 世界魔鬼城（可途经）→ 奎屯吃晚饭 → 博乐", drive: "自驾直达约 8 小时 / 经魔鬼城约 8.5 小时", timeline: [
       { time: "建议早出发", title: "布尔津出发", detail: "全天长途，出发时间待四人确认", point: POINTS.buerjinZhefei },
       { time: "可选", title: "途经世界魔鬼城", detail: "走该方案预计总驾驶约 8.5 小时，不强求完整游览", point: POINTS.ghost },
       { time: "晚饭", title: "奎屯停靠吃饭", detail: "轮换驾驶员、加油并检查车况", point: POINTS.kuitun },
@@ -277,7 +279,7 @@ export const DAYS: TripDay[] = [
     ], cautions: ["当天纯驾驶约 8—8.5 小时，必须两位驾驶员分段并规律休息。"], suggestion: "目标是安全到博乐；若前一日抵达布尔津较晚，直接走 8 小时方案。", routePoints: [POINTS.buerjinZhefei, POINTS.ghost, POINTS.kuitun, POINTS.boleHotel],
   },
   {
-    id: "2026-10-05", day: 7, date: "10/5 周一", shortDate: "10/5", month: "一", dayOfMonth: "5", week: "周一", title: "赛里木湖环湖，夜宿伊宁", route: "博乐 → 赛里木湖 → 果子沟 → 伊宁", drive: "约 3.5 小时 + 环湖", timeline: [
+    id: "2026-10-05", day: 7, date: "10/5 周一", shortDate: "10/5", month: "一", dayOfMonth: "5", week: "周一", title: "赛里木湖环湖，夜宿伊宁", route: "博乐 → 赛里木湖 → 果子沟 → 伊宁", drive: "自驾约 3.5 小时 + 环湖自驾另计", timeline: [
       { time: "上午", title: "博乐出发", detail: "博乐到赛里木湖自驾约 1.5 小时", point: POINTS.boleHotel },
       { time: "中午", title: "赛里木湖环湖", detail: "东门进入，逆时针环湖", point: POINTS.sayramEast },
       { time: "离湖后", title: "前往伊宁", detail: "赛里木湖到伊宁自驾约 2 小时，果子沟只在正规观景点短停", point: POINTS.guozigou },
@@ -287,26 +289,25 @@ export const DAYS: TripDay[] = [
     ], cautions: ["赛里木湖为当天重点；控制环湖停留，给 2 小时返伊宁自驾留足天光。"], routePoints: [POINTS.boleHotel, POINTS.sayramEast, POINTS.sayram, POINTS.guozigou, POINTS.yiningHotel],
   },
   {
-    id: "2026-10-06", day: 8, date: "10/6 周二", shortDate: "10/6", month: "二", dayOfMonth: "6", week: "周二", title: "八卦城与阔克苏，放慢休整", route: "伊宁 → 特克斯八卦城 → 阔克苏大峡谷", drive: "伊宁到特克斯约 2 小时", timeline: [
+    id: "2026-10-06", day: 8, date: "10/6 周二", shortDate: "10/6", month: "二", dayOfMonth: "6", week: "周二", title: "八卦城与阔克苏，夜宿全季", route: "伊宁 → 特克斯八卦城 → 阔克苏大峡谷 → 全季特克斯", drive: "已知自驾约 2 小时 + 阔克苏往返另计", timeline: [
       { time: "上午", title: "伊宁出发", detail: "约 2 小时到特克斯", point: POINTS.yiningHotel },
       { time: "中午", title: "特克斯八卦城", detail: "城市街巷、观景点与本地餐饮", point: POINTS.teks },
       { time: "下午", title: "阔克苏大峡谷", detail: "按景区开放和体力游览，今天整体以休整为主", point: POINTS.kuokesu },
-    ], sightIds: ["teks", "kalajun"], hotels: [teksHotel, kalajunHotel], todos: [
-      { id: "book-oct6-choice", title: "确定 10/6 最终住宿并取消另一间", detail: "Plan A 全季特克斯九宫新城酒店 / Plan B 喀拉峻花间营·云驰谷", important: true, booking: true },
+    ], sightIds: ["teks", "kalajun"], hotels: [teksHotel], todos: [
       { id: "d8-kuokesu", title: "复核阔克苏开放与交通", detail: "确认游客中心、观光车、停止入园时间和当日天气" },
-    ], cautions: ["10 月峡谷和草原受天气影响明显；不为赶景点牺牲休整。"], suggestion: "今天不安排高强度串联；到特克斯偏晚时缩短峡谷游览。", routePoints: [POINTS.yiningHotel, POINTS.teks, POINTS.kuokesu, POINTS.teksHotel, POINTS.kalajunHotel],
+    ], cautions: ["10 月峡谷和草原受天气影响明显；不为赶景点牺牲休整。"], suggestion: "住宿已确定为全季特克斯九宫新城酒店；到特克斯偏晚时缩短峡谷游览。", routePoints: [POINTS.yiningHotel, POINTS.teks, POINTS.kuokesu, POINTS.teksHotel],
   },
   {
-    id: "2026-10-07", day: 9, date: "10/7 周三", shortDate: "10/7", month: "三", dayOfMonth: "7", week: "周三", title: "唐布拉百里画廊，夜宿新源", route: "特克斯八卦城 → 唐布拉 → 新源", drive: "约 5.5 小时，不含游览", timeline: [
+    id: "2026-10-07", day: 9, date: "10/7 周三", shortDate: "10/7", month: "三", dayOfMonth: "7", week: "周三", title: "唐布拉百里画廊，夜宿新源", route: "特克斯八卦城 → 唐布拉 → 新源", drive: "自驾约 5.5 小时，不含游览", timeline: [
       { time: "上午", title: "特克斯出发", detail: "八卦城到唐布拉自驾约 3.5 小时", point: POINTS.teks },
       { time: "下午", title: "游玩唐布拉", detail: "沿百里画廊在正规停车点停靠，游览时长按天气决定", point: POINTS.tangbula },
       { time: "傍晚前", title: "前往新源", detail: "唐布拉到新源自驾约 2 小时", point: POINTS.xinyuanHotel },
-    ], sightIds: [], hotels: [xinyuanHotel], todos: [
+    ], sightIds: ["tangbula"], hotels: [xinyuanHotel], todos: [
       { id: "d9-leave", title: "设置最晚离园时间", detail: "优先天黑前抵达新源" },
     ], cautions: ["山路和停车点受天气影响，沿途只在正规位置停车。"], suggestion: "唐布拉游玩结束后还要驾驶约 2 小时，优先天黑前抵达新源。", routePoints: [POINTS.teks, POINTS.tangbula, POINTS.xinyuanHotel],
   },
   {
-    id: "2026-10-08", day: 10, date: "10/8 周四", shortDate: "10/8", month: "四", dayOfMonth: "8", week: "周四", title: "新源返乌鲁木齐", route: "新源 → 乌鲁木齐；独库公路视通行决定", drive: "约 7 小时，长途返程", timeline: [
+    id: "2026-10-08", day: 10, date: "10/8 周四", shortDate: "10/8", month: "四", dayOfMonth: "8", week: "周四", title: "新源返乌鲁木齐", route: "新源 → 乌鲁木齐；独库公路视通行决定", drive: "自驾约 7 小时，长途返程", timeline: [
       { time: "08:00", title: "新源出发", detail: "开始长途返程", point: POINTS.xinyuanHotel },
       { time: "出发前", title: "确认独库公路通行", detail: "仅在官方确认开放且天气允许时通行，否则走常规路线", point: POINTS.tangbula },
       { time: "下午", title: "途中轮换与查车", detail: "定时休息、加油并检查轮胎", point: POINTS.urumqi },

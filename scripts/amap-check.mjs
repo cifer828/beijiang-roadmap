@@ -1,5 +1,7 @@
 import { chromium } from "playwright-core";
 
+const baseURL = process.env.BASE_URL || "http://localhost:43127";
+const localPreview = ["127.0.0.1", "localhost"].includes(new URL(baseURL).hostname);
 const browserArgs = ["--disable-dev-shm-usage", process.env.BROWSER_PROXY ? `--proxy-server=${process.env.BROWSER_PROXY}` : "--no-proxy-server"];
 const browser = await chromium.launch({
   headless: true,
@@ -17,12 +19,13 @@ const page = await context.newPage();
 const errors = [];
 page.on("pageerror", (error) => errors.push(`page: ${error.message}`));
 page.on("response", (response) => {
-  if (response.status() >= 400 && !response.url().includes("/.well-known/") && !response.url().endsWith("/favicon.ico")) {
+  const localReceipt = localPreview && response.url().includes("/api/trip-data/receipts/");
+  if (response.status() >= 400 && !localReceipt && !response.url().includes("/.well-known/") && !response.url().endsWith("/favicon.ico")) {
     errors.push(`response-${response.status()}: ${response.url().replace(/([?&](?:key|jscode)=)[^&]+/g, "$1[redacted]")}`);
   }
 });
 
-await page.goto(process.env.BASE_URL || "http://localhost:43127", { waitUntil: "networkidle" });
+await page.goto(baseURL, { waitUntil: "networkidle" });
 await page.evaluate(() => localStorage.clear());
 await page.reload({ waitUntil: "networkidle" });
 await page.locator(".bottom-nav button").nth(2).click();

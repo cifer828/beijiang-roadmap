@@ -41,7 +41,12 @@ page.on("console", (message) => {
     && !(failFirstLoad && message.text().includes("ERR_FAILED"))
   ) errors.push(message.text().replace(/https?:\/\/[^ "'?]+[^\s"']*/g, "[url]"));
 });
-page.on("pageerror", (error) => errors.push(error.message));
+page.on("pageerror", (error) => {
+  // 高德 2D 图层在 Chrome 的 iPhone 仿真环境会抛出这一条内部 WebGL 探测错误，
+  // 随后会正常回退到单个 2D canvas；下方仍会逐轮检查实际地图 DOM。
+  if (error.message.includes("U.Module.WebGLRender is not a constructor")) return;
+  errors.push((error.stack || error.message).replace(/https?:\/\/[^ "'?]+[^\s"']*/g, "[url]"));
+});
 
 try {
   await page.goto(baseURL, { waitUntil: "networkidle" });

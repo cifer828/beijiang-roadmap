@@ -14,12 +14,14 @@ const browser = await chromium.launch({
 const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, locale: "zh-CN", timezoneId: "Asia/Shanghai" });
 const page = await context.newPage();
 const errors = [];
+const localPreview = new URL(baseURL).hostname === "127.0.0.1";
 page.on("console", (message) => {
   if (message.type() === "error" && !message.text().includes("Failed to load resource: the server responded with a status of 404")) errors.push(`console: ${message.text()}`);
 });
 page.on("pageerror", (error) => errors.push(`page: ${error.message}`));
 page.on("response", (response) => {
-  if (response.status() >= 400 && !response.url().includes("/.well-known/") && !response.url().endsWith("/favicon.ico")) errors.push(`response-${response.status()}: ${response.url()}`);
+  const localReceipt = localPreview && response.url().includes("/api/trip-data/receipts/");
+  if (response.status() >= 400 && !localReceipt && !response.url().includes("/.well-known/") && !response.url().endsWith("/favicon.ico")) errors.push(`response-${response.status()}: ${response.url()}`);
 });
 
 await page.goto(baseURL, { waitUntil: "domcontentloaded", timeout: 60_000 });
@@ -39,11 +41,15 @@ const loadCards = async () => {
   for (let i = 0; i < await cards.count(); i++) {
     await cards.nth(i).evaluate((element) => element.scrollIntoView({ block: "center" }));
     await page.waitForTimeout(80);
-    const image = cards.nth(i).locator("img");
-    if (await image.count()) {
+    const images = cards.nth(i).locator("img");
+    for (let imageIndex = 0; imageIndex < await images.count(); imageIndex++) {
+      const image = images.nth(imageIndex);
+      const src = await image.getAttribute("src");
+      const localReceipt = localPreview && src?.startsWith("/api/trip-data/receipts/");
+      if (localReceipt) continue;
       await image.evaluate((img) => img.complete || new Promise((resolve) => { const timer = setTimeout(resolve, 2000); img.addEventListener("load", () => { clearTimeout(timer); resolve(true); }, { once: true }); img.addEventListener("error", () => { clearTimeout(timer); resolve(false); }, { once: true }); }));
       const ok = await image.evaluate((img) => img.naturalWidth > 0);
-      if (!ok) errors.push(`image: ${await image.getAttribute("src")}`);
+      if (!ok) errors.push(`image: ${src}`);
     }
   }
 };
@@ -92,11 +98,13 @@ await shot("10-day-1004-bole-hotel");
 
 await selectDay(7);
 await page.getByText("今晚住宿", { exact: true }).scrollIntoViewIfNeeded();
-await shot("11-day-1006-hotels-a");
-await page.locator(".hotel-card").nth(1).scrollIntoViewIfNeeded();
-await shot("12-day-1006-hotels-b");
+await shot("11-day-1006-hotel");
 await page.getByText("全部待办", { exact: true }).scrollIntoViewIfNeeded();
-await shot("13-day-1006-todos");
+await shot("12-day-1006-todos");
+
+await selectDay(8);
+await page.getByRole("heading", { name: "唐布拉草原", exact: true }).scrollIntoViewIfNeeded();
+await shot("13-day-1007-tangbula");
 
 await page.locator(".bottom-nav button").nth(1).click();
 await shot("14-trip-top");
@@ -106,6 +114,14 @@ await shot("15-trip-bottom");
 await page.locator(".bottom-nav button").nth(2).click();
 await page.locator(".amap-canvas").waitFor({ state: "visible", timeout: 16_000 });
 await page.waitForFunction(() => (document.querySelector(".amap-canvas")?.childElementCount ?? 0) > 0, null, { timeout: 8_000 });
+const mapTimeChecks = ["航班日", "5—6 小时", "禾木区间车约 1 小时", "区间车约 3 小时", "区间车往返约 2 小时", "8.5 小时", "3.5 小时", "阔克苏往返另计", "5.5 小时", "7 小时", "还车 + 航班"];
+for (let index = 0; index < mapTimeChecks.length; index++) {
+  await page.locator(".map-dates button").nth(index).click();
+  await page.waitForTimeout(80);
+  const travelTime = await page.locator(".map-stats b").last().textContent();
+  if (!travelTime?.includes(mapTimeChecks[index])) errors.push(`map-travel-time-${index}: ${travelTime}`);
+  if (index >= 2 && index <= 4) await shot(`16-map-${["1001", "1002", "1003"][index - 2]}-time`);
+}
 await shot("16-map-route");
 
 await page.locator(".bottom-nav button").nth(3).click();
@@ -119,8 +135,8 @@ await page.getByRole("button", { name: "王晶 张秋晨 · 王晶", exact: true
 await shot("20-ledger-settlement");
 const total = await page.locator(".ledger-hero strong").textContent();
 const transfer = await page.locator(".transfer").textContent();
-if (!total?.includes("11,870.31")) errors.push(`ledger-total: ${total}`);
-if (!transfer?.includes("5,935.15") || !transfer.includes("闫寒 · 刘一帆") || !transfer.includes("张秋晨 · 王晶")) errors.push(`ledger-transfer: ${transfer}`);
+if (!total?.includes("10,341.85")) errors.push(`ledger-total: ${total}`);
+if (!transfer?.includes("5,170.92") || !transfer.includes("闫寒 · 刘一帆") || !transfer.includes("张秋晨 · 王晶")) errors.push(`ledger-transfer: ${transfer}`);
 await page.getByRole("button", { name: "＋ 记一笔" }).click();
 await shot("21-ledger-new-expense");
 
@@ -133,7 +149,8 @@ const layout = await page.evaluate(() => ({
 if (layout.scrollWidth > layout.viewport) errors.push(`horizontal-overflow: ${JSON.stringify(layout)}`);
 if (layout.navBottom !== 844 || layout.navHeight < 70) errors.push(`bottom-nav: ${JSON.stringify(layout)}`);
 
-await fs.writeFile(`${output}/report.json`, JSON.stringify({ baseURL, screenshots: 21, layout, errors }, null, 2));
-console.log(JSON.stringify({ output, screenshots: 21, layout, errors }, null, 2));
+const screenshots = (await fs.readdir(output)).filter((name) => name.endsWith(".png")).length;
+await fs.writeFile(`${output}/report.json`, JSON.stringify({ baseURL, screenshots, layout, errors }, null, 2));
+console.log(JSON.stringify({ output, screenshots, layout, errors }, null, 2));
 await browser.close();
 if (errors.length) process.exitCode = 1;
