@@ -1,5 +1,6 @@
 import { chromium } from "playwright-core";
 import fs from "node:fs/promises";
+import path from "node:path";
 
 const baseURL = process.env.BASE_URL || "http://localhost:43127";
 const output = process.env.OUTPUT_DIR || "/tmp/bj-roadtrip-visual";
@@ -149,6 +150,30 @@ if (!total?.includes("10,341.85")) errors.push(`ledger-total: ${total}`);
 if (!transfer?.includes("5,170.92") || !transfer.includes("闫寒 · 刘一帆") || !transfer.includes("张秋晨 · 王晶")) errors.push(`ledger-transfer: ${transfer}`);
 await page.getByRole("button", { name: "＋ 记一笔" }).click();
 await shot("21-ledger-new-expense");
+await page.getByLabel("付款内容").fill("图片预览验收");
+await page.getByLabel("金额").fill("1");
+await page.locator(".expense-sheet input[type='file']").setInputFiles(path.resolve("public/images/share/og.png"));
+await page.locator(".image-preview-open").waitFor({ state: "visible" });
+await page.getByRole("button", { name: "保存并更新结算" }).click();
+
+const imageExpense = page.locator(".expense-card").filter({ hasText: "图片预览验收" });
+await imageExpense.waitFor({ state: "visible" });
+await imageExpense.scrollIntoViewIfNeeded();
+await imageExpense.locator(".receipt-images button").click();
+await page.locator(".image-lightbox").waitFor({ state: "visible" });
+const cardPreviewLoaded = await page.locator(".image-lightbox img").evaluate((image) => image.naturalWidth > 0);
+if (!cardPreviewLoaded) errors.push("ledger-card-image-preview: image did not load");
+await shot("22-ledger-card-image-full");
+await page.getByRole("button", { name: "关闭原图" }).click();
+
+await imageExpense.getByRole("button", { name: "修改" }).click();
+await page.locator(".image-preview-open").click();
+await page.locator(".image-lightbox").waitFor({ state: "visible" });
+const editPreviewLoaded = await page.locator(".image-lightbox img").evaluate((image) => image.naturalWidth > 0);
+if (!editPreviewLoaded) errors.push("ledger-edit-image-preview: image did not load");
+await shot("23-ledger-edit-image-full");
+await page.getByRole("button", { name: "关闭原图" }).click();
+await page.locator(".sheet-close").click();
 
 const layout = await page.evaluate(() => ({
   viewport: document.documentElement.clientWidth,

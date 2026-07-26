@@ -257,7 +257,35 @@ function localDateTime() {
   return formatter.format(new Date()).replace(" ", "T");
 }
 
-function ExpenseSheet({ person, expense, onClose, onSave }: { person: Person; expense?: Expense; onClose: () => void; onSave: (expense: Expense) => Promise<void> }) {
+type ImagePreview = { src: string; alt: string };
+
+function ImageLightbox({ preview, onClose }: { preview: ImagePreview; onClose: () => void }) {
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [onClose]);
+
+  return (
+    <div className="image-lightbox" role="dialog" aria-modal="true" aria-label="查看凭证原图" onClick={onClose}>
+      <div className="image-lightbox-panel" onClick={(event) => event.stopPropagation()}>
+        <button className="image-lightbox-close" type="button" aria-label="关闭原图" onClick={onClose}>×</button>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={preview.src} alt={preview.alt} />
+        <a className="image-lightbox-original" href={preview.src} target="_blank" rel="noreferrer">在新窗口打开原图 ↗</a>
+      </div>
+    </div>
+  );
+}
+
+function ExpenseSheet({ person, expense, onClose, onSave, onPreview }: { person: Person; expense?: Expense; onClose: () => void; onSave: (expense: Expense) => Promise<void>; onPreview: (preview: ImagePreview) => void }) {
   const [title, setTitle] = useState(expense?.title ?? "");
   const [amount, setAmount] = useState(expense ? (expense.amountCents / 100).toFixed(2) : "");
   const [occurredAt, setOccurredAt] = useState(expense?.occurredAt ?? localDateTime());
@@ -294,7 +322,16 @@ function ExpenseSheet({ person, expense, onClose, onSave }: { person: Person; ex
       <label>消费时间<input type="datetime-local" value={occurredAt} onChange={(event) => setOccurredAt(event.target.value)} /></label>
       <label>备注<textarea value={note} onChange={(event) => setNote(event.target.value)} placeholder="可选" /></label>
       <label className="upload">＋ 拍摄或从相册选择<input type="file" accept="image/*" multiple onChange={files} disabled={images.length >= 3} /><small>最多 3 张，上传前自动压缩</small></label>
-      {images.length > 0 && <div className="image-preview">{images.map((src, index) => <div key={`${src.slice(-24)}-${index}`}><img src={src} alt={`凭证 ${index + 1}`} /><button type="button" onClick={() => setImages(images.filter((_, i) => i !== index))}>×</button></div>)}</div>}
+      {images.length > 0 && <div className="image-preview">{images.map((src, index) => {
+        const alt = `${expense?.title || title || "消费"}凭证${index + 1}`;
+        return <div key={`${src.slice(-24)}-${index}`}>
+          <button className="image-preview-open" type="button" aria-label={`查看${alt}原图`} onClick={() => onPreview({ src, alt })}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={src} alt={alt} />
+          </button>
+          <button className="image-remove" type="button" aria-label={`移除${alt}`} onClick={() => setImages(images.filter((_, i) => i !== index))}>×</button>
+        </div>;
+      })}</div>}
       <button className="primary-button save-expense" disabled={saving}>{saving ? "保存中…" : "保存并更新结算"}</button>
     </form></div>
   );
@@ -302,6 +339,7 @@ function ExpenseSheet({ person, expense, onClose, onSave }: { person: Person; ex
 
 function LedgerPage({ identity, setIdentity, expenses, setExpenses }: { identity: Person | null; setIdentity: (person: Person | null) => void; expenses: Expense[]; setExpenses: (expenses: Expense[]) => void }) {
   const [sheet, setSheet] = useState<Expense | "new" | null>(null);
+  const [preview, setPreview] = useState<ImagePreview | null>(null);
   const [error, setError] = useState("");
   const result = useMemo(() => settle(expenses), [expenses]);
   const save = async (expense: Expense) => {
@@ -326,11 +364,18 @@ function LedgerPage({ identity, setIdentity, expenses, setExpenses }: { identity
             <div className="transfer"><span>最简平账 · 最多一笔</span>{result.transfer ? <><b>{result.transfer.from} → {result.transfer.to}</b><strong>{formatMoney(result.transfer.amountCents)}</strong></> : <b>两家已经结清</b>}</div>
           </section>
           <section className="expenses"><div className="section-title"><h2>消费明细</h2><button type="button" onClick={() => setSheet("new")}>＋ 记一笔</button></div>
-            <div className="expense-list">{expenses.map((expense) => <article className="expense-card card" key={expense.id}><div><h3>{expense.title}</h3><strong>{formatMoney(expense.amountCents)}</strong></div><p>{expense.paidBy}支付 · {expense.occurredAt.slice(5).replace("T", " ")}</p>{expense.note && <small>{expense.note}</small>}<div className="expense-foot"><span>两家各一半</span><span>{expense.images.length ? `${expense.images.length} 张图片` : "无图片"}</span><button type="button" onClick={() => setSheet(expense)}>修改</button><button type="button" onClick={() => remove(expense)}>删除</button></div>{expense.images.length > 0 && <div className="receipt-images">{expense.images.map((src, index) => <img key={`${expense.id}-${index}`} src={src} alt={`${expense.title}凭证${index + 1}`} />)}</div>}</article>)}</div>
+            <div className="expense-list">{expenses.map((expense) => <article className="expense-card card" key={expense.id}><div><h3>{expense.title}</h3><strong>{formatMoney(expense.amountCents)}</strong></div><p>{expense.paidBy}支付 · {expense.occurredAt.slice(5).replace("T", " ")}</p>{expense.note && <small>{expense.note}</small>}<div className="expense-foot"><span>两家各一半</span><span>{expense.images.length ? `${expense.images.length} 张图片` : "无图片"}</span><button type="button" onClick={() => setSheet(expense)}>修改</button><button type="button" onClick={() => remove(expense)}>删除</button></div>{expense.images.length > 0 && <div className="receipt-images">{expense.images.map((src, index) => {
+              const alt = `${expense.title}凭证${index + 1}`;
+              return <button type="button" key={`${expense.id}-${index}`} aria-label={`查看${alt}原图`} onClick={() => setPreview({ src, alt })}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={src} alt={alt} />
+              </button>;
+            })}</div>}</article>)}</div>
           </section>
         </div>
       )}
-      {identity && sheet && <ExpenseSheet person={identity} expense={sheet === "new" ? undefined : sheet} onClose={() => setSheet(null)} onSave={save} />}
+      {identity && sheet && <ExpenseSheet person={identity} expense={sheet === "new" ? undefined : sheet} onClose={() => setSheet(null)} onSave={save} onPreview={setPreview} />}
+      {preview && <ImageLightbox preview={preview} onClose={() => setPreview(null)} />}
     </main>
   );
 }
