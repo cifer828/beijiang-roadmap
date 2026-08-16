@@ -90,10 +90,16 @@ describe("迁移数据完整性", () => {
       order: "1128149551951752",
     });
     expect(hotels.find((hotel) => hotel.id === "bole-ji")).toMatchObject({
-      room: "高级大床房 2 间",
-      amount: "¥701.62",
-      order: "入住码 DFW22L",
+      room: "高级大床房 2 间 · 早餐赠 2 份（限铂金会员入住）",
+      amount: "¥670.94",
+      cancel: "10/3 23:00 前免费取消，此后不可取消",
     });
+    expect(hotels.find((hotel) => hotel.id === "teks")).toMatchObject({
+      room: "商务大床房 2 间 · 早餐赠 2 份（限铂金会员入住）",
+      checkIn: "10/6 12:00 后",
+      amount: "¥483.26",
+    });
+    expect(hotels.filter((hotel) => ["jiadengyu-jinmeijia", "bole-ji", "teks"].includes(hotel.id)).flatMap((hotel) => hotel.receipts ?? []).every((src) => src.startsWith("/images/orders/"))).toBe(true);
     expect(hotels.find((hotel) => hotel.id === "altay")?.receipts).toBeUndefined();
     expect(hotels.flatMap((hotel) => hotel.receipts ?? [])).toHaveLength(10);
   });

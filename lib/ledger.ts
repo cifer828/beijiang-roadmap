@@ -19,9 +19,9 @@ export const INITIAL_EXPENSES: Expense[] = [
   { id: "hotel-hemu", title: "10/1 禾木住宿", amountCents: 256019, paidBy: "张秋晨", occurredAt: "2026-10-01T12:00", note: "纳兰禾谷民宿 · 订单 1128149389793495 · 按入住日记账", images: [] },
   { id: "hotel-jiadengyu", title: "10/2 贾登峪住宿", amountCents: 107434, paidBy: "张秋晨", occurredAt: "2026-10-02T14:00", note: "喀纳斯金美佳酒店 · 两笔订单 ¥550 + ¥524.34", images: [] },
   { id: "hotel-buerjin-zhefei", title: "10/3 布尔津住宿", amountCents: 120200, paidBy: "张秋晨", occurredAt: "2026-10-03T14:00", note: "喆啡酒店（布尔津友谊峰路店）· 另使用积分抵扣 ¥22", images: [] },
-  { id: "hotel-bole-ji", title: "10/4 博乐住宿", amountCents: 70162, paidBy: "张秋晨", occurredAt: "2026-10-04T14:00", note: "全季酒店（博乐青得里大街店）", images: [] },
+  { id: "hotel-bole-ji", title: "10/4 博乐住宿", amountCents: 67094, paidBy: "张秋晨", occurredAt: "2026-10-04T14:00", note: "全季酒店（博乐青得里大街店）", images: [] },
   { id: "hotel-yining", title: "10/5 伊宁住宿", amountCents: 60838, paidBy: "张秋晨", occurredAt: "2026-10-05T14:00", note: "桔子伊宁万容广场酒店 · 按入住日记账", images: [] },
-  { id: "hotel-teks-plan-a", title: "10/6 特克斯住宿", amountCents: 49890, paidBy: "张秋晨", occurredAt: "2026-10-06T14:00", note: "全季特克斯九宫新城酒店 · 已确定入住", images: [] },
+  { id: "hotel-teks-plan-a", title: "10/6 特克斯住宿", amountCents: 48326, paidBy: "张秋晨", occurredAt: "2026-10-06T12:00", note: "全季特克斯九宫新城酒店 · 已确定入住", images: [] },
   { id: "hotel-xinyuan", title: "10/7 新源住宿", amountCents: 46762, paidBy: "张秋晨", occurredAt: "2026-10-07T14:00", note: "汉庭新源县天鹅湖酒店 · 按入住日记账", images: [] },
   { id: "hotel-urumqi-last", title: "10/8 乌鲁木齐住宿", amountCents: 49890, paidBy: "张秋晨", occurredAt: "2026-10-08T14:00", note: "桔子乌鲁木齐天山国际机场砂之船奥莱酒店 · 按入住日记账", images: [] },
 ];

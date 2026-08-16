@@ -146,8 +146,8 @@ await page.getByRole("button", { name: "王晶 张秋晨 · 王晶", exact: true
 await shot("20-ledger-settlement");
 const total = await page.locator(".ledger-hero strong").textContent();
 const transfer = await page.locator(".transfer").textContent();
-if (!total?.includes("10,341.85")) errors.push(`ledger-total: ${total}`);
-if (!transfer?.includes("5,170.92") || !transfer.includes("闫寒 · 刘一帆") || !transfer.includes("张秋晨 · 王晶")) errors.push(`ledger-transfer: ${transfer}`);
+if (!total?.includes("10,295.53")) errors.push(`ledger-total: ${total}`);
+if (!transfer?.includes("5,147.76") || !transfer.includes("闫寒 · 刘一帆") || !transfer.includes("张秋晨 · 王晶")) errors.push(`ledger-transfer: ${transfer}`);
 await page.getByRole("button", { name: "＋ 记一笔" }).click();
 await shot("21-ledger-new-expense");
 await page.getByLabel("付款内容").fill("图片预览验收");

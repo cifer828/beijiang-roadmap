@@ -10,12 +10,12 @@ describe("双家庭固定 50/50 结算", () => {
 
   it("当前已知订单只生成一笔跨家庭转账", () => {
     const result = settle(INITIAL_EXPENSES);
-    expect(result.total).toBe(1034185);
+    expect(result.total).toBe(1029553);
     expect(result.paidA).toBe(0);
-    expect(result.paidB).toBe(1034185);
-    expect(result.owedA).toBe(517092);
-    expect(result.owedB).toBe(517093);
-    expect(result.transfer).toEqual({ from: "闫寒 · 刘一帆", to: "张秋晨 · 王晶", amountCents: 517092 });
+    expect(result.paidB).toBe(1029553);
+    expect(result.owedA).toBe(514776);
+    expect(result.owedB).toBe(514777);
+    expect(result.transfer).toEqual({ from: "闫寒 · 刘一帆", to: "张秋晨 · 王晶", amountCents: 514776 });
   });
 
   it("奇数分由付款家庭多承担一分", () => {
