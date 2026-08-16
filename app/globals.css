@@ -133,8 +133,8 @@ a { color: inherit; text-decoration: none; }
 .hotel-receipts b { color: #344a40; font-size: 10px; }
 .hotel-receipts span { color: #9aa29d; font-size: 8px; }
 .hotel-receipts > div:last-child { display: flex; gap: 8px; }
-.hotel-receipts a { position: relative; width: 68px; height: 86px; overflow: hidden; border: 1px solid #dfe5e1; border-radius: 9px; background: white; box-shadow: 0 3px 9px rgba(23,59,48,.08); }
-.hotel-receipts a span { position: absolute; inset: 0; display: grid; place-items: center; color: #6f7c74; font-size: 9px; }
+.hotel-receipts button { position: relative; width: 68px; height: 86px; padding: 0; overflow: hidden; border: 1px solid #dfe5e1; border-radius: 9px; background: white; box-shadow: 0 3px 9px rgba(23,59,48,.08); cursor: zoom-in; }
+.hotel-receipts button span { position: absolute; inset: 0; display: grid; place-items: center; color: #6f7c74; font-size: 9px; }
 .hotel-receipts img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
 .hotel-no-receipt { margin: 0; padding: 11px 16px 14px; border-top: 1px solid var(--line); color: #9aa29d; background: #fafbf9; font-size: 9px; }
 

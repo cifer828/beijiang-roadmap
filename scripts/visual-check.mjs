@@ -92,6 +92,15 @@ await page.getByText("今晚住宿", { exact: true }).scrollIntoViewIfNeeded();
 await shot("08-day-1002-jiadengyu-hotel");
 await page.locator(".hotel-receipts").scrollIntoViewIfNeeded();
 await shot("08b-day-1002-jiadengyu-orders");
+const receiptPageCount = context.pages().length;
+const receiptPageUrl = page.url();
+await page.locator(".hotel-receipts button").first().click();
+await page.locator(".image-lightbox").waitFor({ state: "visible" });
+const hotelPreviewLoaded = await page.locator(".image-lightbox img").evaluate((image) => image.naturalWidth > 0);
+if (!hotelPreviewLoaded) errors.push("hotel-receipt-preview: image did not load");
+if (context.pages().length !== receiptPageCount || page.url() !== receiptPageUrl) errors.push("hotel-receipt-preview: opened a new page");
+await shot("08c-day-1002-order-full");
+await page.getByRole("button", { name: "关闭原图" }).click();
 
 await selectDay(4);
 await page.getByText("今晚住宿", { exact: true }).scrollIntoViewIfNeeded();

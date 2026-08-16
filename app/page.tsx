@@ -137,6 +137,7 @@ function SightCard({ sight, index }: { sight: Sight; index: number }) {
 }
 
 function HotelCard({ hotel }: { hotel: Hotel }) {
+  const [preview, setPreview] = useState<ImagePreview | null>(null);
   const facts = [
     ["房型", hotel.room], ["入住", hotel.checkIn], ["退房", hotel.checkOut], ["金额", hotel.amount],
     hotel.order ? ["订单", hotel.order] : null, hotel.contact ? ["联系", hotel.contact] : null, hotel.cancel ? ["取消", hotel.cancel] : null,
@@ -155,14 +156,15 @@ function HotelCard({ hotel }: { hotel: Hotel }) {
         <div className="hotel-receipts">
           <div><b>订单截图</b><span>点击缩略图查看原图</span></div>
           <div>{hotel.receipts.map((src, index) => (
-            <a href={src} target="_blank" rel="noreferrer" key={src} aria-label={`查看${hotel.name}订单截图${index + 1}`}>
+            <button type="button" key={src} aria-label={`查看${hotel.name}订单截图${index + 1}`} onClick={() => setPreview({ src, alt: `${hotel.name}订单截图${index + 1}` })}>
               <span>订单 {index + 1}</span>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={src} alt={`${hotel.name}订单截图${index + 1}`} loading="lazy" onError={(event) => { event.currentTarget.style.display = "none"; }} />
-            </a>
+            </button>
           ))}</div>
         </div>
       ) : <p className="hotel-no-receipt">阿勒泰壹号订单截图待补</p>}
+      {preview && <ImageLightbox preview={preview} onClose={() => setPreview(null)} />}
     </article>
   );
 }
