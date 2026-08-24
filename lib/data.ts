@@ -65,6 +65,7 @@ export const POINTS: Record<string, Point> = {
   urumqi: { name: "乌鲁木齐", lng: 87.6177, lat: 43.7928 },
   airport: { name: "乌鲁木齐天山国际机场", lng: 87.4742, lat: 43.9071 },
   urumqiHotel: { name: "桔子乌鲁木齐天山国际机场砂之船奥莱酒店", lng: 87.449301, lat: 43.895188 },
+  rentalStore: { name: "滴滴租车取还车门店（凯坤壹品）", lng: 87.542819, lat: 43.835345 },
   ulungur: { name: "乌伦古湖黄金海岸景区", lng: 87.412829, lat: 47.244158 },
   altay: { name: "阿勒泰市", lng: 88.1396, lat: 47.8484 },
   altayHotel: { name: "阿勒泰壹号民宿", lng: 88.135913, lat: 47.83284 },
@@ -221,14 +222,14 @@ export const DAYS: TripDay[] = [
   },
   {
     id: "2026-09-30", day: 2, date: "9/30 周三", shortDate: "9/30", month: "三", dayOfMonth: "30", week: "周三", title: "乌鲁木齐 → 乌伦古湖 → 阿勒泰", route: "S21 沙漠高速 · 乌伦古湖黄金海岸", drive: "自驾约 5—6 小时", distance: "约 510km", timeline: [
-      { time: "09:00", title: "酒店取车", detail: "坦克 300 送车上门，拍摄车况并核对保险", point: POINTS.urumqiHotel },
+      { time: "09:00", title: "前往门店取车", detail: "自行前往凯坤壹品门店；驾驶人携带身份证和驾驶证，验车后拍照留证", point: POINTS.rentalStore },
       { time: "下午", title: "乌伦古湖", detail: "黄金海岸停留 1—2 小时", point: POINTS.ulungur },
       { time: "傍晚", title: "阿勒泰入住", detail: "有余量再去桦林公园", point: POINTS.altayHotel },
     ], sightIds: ["ulungur", "birch"], hotels: [altayHotel], todos: [
-      { id: "d2-car", title: "取车验车", detail: "车身、轮胎、油量、里程、内饰、保险与救援电话" },
+      { id: "d2-car", title: "门店取车验车", detail: "携带驾驶人身份证、驾驶证；核对车身、轮胎、油量、里程、内饰、保险与救援电话", important: true },
       { id: "d2-fuel", title: "出城前加满油", detail: "确认沿途补给点" },
       { id: "d2-transfer", title: "确认禾木民宿接驳", detail: "核对换乘中心与民宿接送" },
-    ], cautions: ["驾驶员轮换，留意沙漠高速横风。"], suggestion: "纯驾驶约 5 小时，实际至少按 6—7 小时含停留安排。", routePoints: [POINTS.urumqiHotel, POINTS.ulungur, POINTS.altayHotel],
+    ], cautions: ["取车点位于乌鲁木齐经开区凯坤壹品，不再提供酒店送车。", "驾驶员轮换，留意沙漠高速横风。"], suggestion: "先从酒店前往门店取车；纯驾驶约 5 小时，实际至少按 6—7 小时含取车与停留安排。", routePoints: [POINTS.urumqiHotel, POINTS.rentalStore, POINTS.ulungur, POINTS.altayHotel],
   },
   {
     id: "2026-10-01", day: 3, date: "10/1 周四", shortDate: "10/1", month: "四", dayOfMonth: "1", week: "周四", title: "阿禾公路穿越，抵达禾木", route: "阿勒泰 → 阿禾公路 → 禾木村", drive: "自驾约 5—7 小时 + 禾木区间车约 1 小时", timeline: [
@@ -311,36 +312,36 @@ export const DAYS: TripDay[] = [
       { time: "08:00", title: "新源出发", detail: "开始长途返程", point: POINTS.xinyuanHotel },
       { time: "出发前", title: "确认独库公路通行", detail: "仅在官方确认开放且天气允许时通行，否则走常规路线", point: POINTS.tangbula },
       { time: "下午", title: "途中轮换与查车", detail: "定时休息、加油并检查轮胎", point: POINTS.urumqi },
-      { time: "傍晚", title: "机场附近入住", detail: "先处理早班机和还车安排", point: POINTS.urumqiHotel },
+      { time: "傍晚", title: "机场附近入住", detail: "确认次日门店还车时间，以及门店到机场的接驳方式", point: POINTS.urumqiHotel },
     ], sightIds: [], hotels: [urumqiLast], todos: [
-      { id: "d10-return", title: "整理还车资料", detail: "油费、车况录像、租车联系人和还车位置" },
+      { id: "d10-return", title: "确认门店还车与机场接驳", detail: "还车时间待门店确认；保存油费、车况录像、租车联系人和门店地址", important: true },
       { id: "d10-checkin", title: "两队分别在线值机", detail: "核对证件、行李与航站楼" },
       { id: "d10-duku", title: "查询独库公路开放状态", detail: "以交通部门和高德实时路况为准；关闭时直接走常规返乌路线", important: true },
-    ], cautions: ["10 月独库公路可能因降雪临时封闭，不把通行当作确定前提。", "不要因赶路压缩休息；抵达后先处理次日早班机和还车。"], routePoints: [POINTS.xinyuanHotel, POINTS.tangbula, POINTS.urumqiHotel],
+    ], cautions: ["10 月独库公路可能因降雪临时封闭，不把通行当作确定前提。", "还车已改为凯坤壹品门店自还；抵达后必须先确认还车时间和前往机场的交通。"], routePoints: [POINTS.xinyuanHotel, POINTS.tangbula, POINTS.urumqiHotel],
   },
   {
-    id: "2026-10-09", day: 11, date: "10/9 周五", shortDate: "10/9", month: "五", dayOfMonth: "9", week: "周五", title: "还车，两队返程", route: "乌鲁木齐 → 香港 / 上海", drive: "还车 + 航班", timeline: [
+    id: "2026-10-09", day: 11, date: "10/9 周五", shortDate: "10/9", month: "五", dayOfMonth: "9", week: "周五", title: "门店还车，两队返程", route: "酒店 → 凯坤壹品取还车门店 → 机场 → 香港 / 上海", drive: "门店还车 + 接驳 + 航班", timeline: [
       { time: "07:15 前", title: "广州队选座截止提醒", detail: "CZ603 选座截止", point: POINTS.airport },
       { time: "10:15", title: "广州队飞香港", detail: "15:40 抵达香港 T1", point: POINTS.airport },
-      { time: "14:00", title: "完成还车", detail: "机场北航站楼国内出发，店员上门取车", point: POINTS.airport },
+      { time: "待确认", title: "前往门店完成还车", detail: "自行驾车到凯坤壹品门店还车，再前往机场；原 14:00 机场上门还车安排已失效", point: POINTS.rentalStore },
       { time: "14:55", title: "天津队飞上海", detail: "19:40 抵达虹桥 T2", point: POINTS.airport },
     ], sightIds: [], hotels: [], todos: [
-      { id: "d11-car", title: "按时还车", detail: "由天津队完成最终还车" },
+      { id: "d11-car", title: "确认并提前完成门店还车", detail: "由天津队自行到凯坤壹品门店还车，再转往机场；时间待与门店确认", important: true },
       { id: "d11-ledger", title: "所有消费录完后平账", detail: "确认两家最简一笔转账" },
       { id: "d11-proof", title: "保存还车单、油费和结算截图", detail: "离线归档行程凭证" },
-    ], cautions: ["广州队早于约定还车时间起飞，需由天津队完成最终还车。", "香港航班要核对证件与入境要求。"], flights: [
+    ], cautions: ["原 14:00 还车安排已不适用：门店还车后还要前往机场，不能按原时间执行，需立即与门店确认新的还车时间。", "广州队先起飞，由天津队完成最终还车并前往机场。", "香港航班要核对证件与入境要求。"], flights: [
       { team: "广州队", no: "CZ603", depart: "10:15 乌鲁木齐天山", arrive: "15:40 香港 T1", people: "闫寒、刘一帆" },
       { team: "天津队", no: "FM9216", depart: "14:55 乌鲁木齐天山", arrive: "19:40 上海虹桥 T2", people: "张秋晨、王晶" },
-    ], routePoints: [POINTS.urumqiHotel, POINTS.airport],
+    ], routePoints: [POINTS.urumqiHotel, POINTS.rentalStore, POINTS.airport],
   },
 ];
 
 export const FULL_ROUTE: Point[] = [
-  POINTS.urumqiHotel, POINTS.ulungur, POINTS.altayHotel, POINTS.ahe, POINTS.hemuHotel,
+  POINTS.urumqiHotel, POINTS.rentalStore, POINTS.ulungur, POINTS.altayHotel, POINTS.ahe, POINTS.hemuHotel,
   POINTS.jiadengyuHotel, POINTS.kanas, POINTS.wucaitan, POINTS.buerjinZhefei,
   POINTS.ghost, POINTS.kuitun, POINTS.boleHotel, POINTS.sayram, POINTS.guozigou,
   POINTS.yiningHotel, POINTS.teks, POINTS.kuokesu, POINTS.tangbula, POINTS.xinyuanHotel,
-  POINTS.urumqiHotel,
+  POINTS.urumqiHotel, POINTS.rentalStore, POINTS.airport,
 ];
 
 export const FIXED_CHECKLIST: Todo[] = [

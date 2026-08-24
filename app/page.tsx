@@ -3,7 +3,7 @@
 import { ChangeEvent, FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import TripMap from "@/components/TripMap";
 import AmapLink, { AmapNavigationIcon } from "@/components/AmapLink";
-import { BOOKING_CHECKLIST, DAYS, FIXED_CHECKLIST, SIGHTS, amapMarker, xiaohongshuSearch, type Hotel, type Sight, type Todo, type TripDay } from "@/lib/data";
+import { BOOKING_CHECKLIST, DAYS, FIXED_CHECKLIST, POINTS, SIGHTS, amapMarker, xiaohongshuSearch, type Hotel, type Sight, type Todo, type TripDay } from "@/lib/data";
 import { beijingDate, daysUntilTrip, defaultTripDate, TRIP_END, TRIP_START } from "@/lib/date";
 import { INITIAL_EXPENSES, FAMILY_A, FAMILY_B, PEOPLE, formatMoney, settle, type Expense, type Person } from "@/lib/ledger";
 import { checklistStore, expenseStore, isCloudMode } from "@/lib/storage";
@@ -199,6 +199,7 @@ function TodayPage({ day, selected, setSelected, checklist, toggleChecklist }: {
 }
 
 function TripPage({ openDay }: { openDay: (id: string) => void }) {
+  const [preview, setPreview] = useState<ImagePreview | null>(null);
   return (
     <main className="trip-page standalone page-pad-bottom">
       <header className="page-header"><span>11 DAYS · 2026</span><h1>全部行程</h1><p>从两地出发，在乌鲁木齐会合；新疆境内行程完全重合。</p></header>
@@ -207,7 +208,17 @@ function TripPage({ openDay }: { openDay: (id: string) => void }) {
           <div><small>{day.week}</small><b>{day.shortDate}</b></div><span><em>DAY {String(day.day).padStart(2, "0")}</em><strong>{day.title}</strong><small>{day.drive}{day.hotels[0] ? ` · ${day.hotels.map((hotel) => hotel.name).join(" / ")}` : ""}</small></span><i>›</i>
         </button>
       ))}</div>
-      <aside className="rental-card"><span>RENTAL CAR</span><h2>坦克 300 · 自动挡 2.0T · 5座</h2><p>9月30日 09:00 · 酒店送车上门</p><p>10月9日 14:00 · 乌鲁木齐天山国际机场北航站楼国内出发</p><b>不限里程 · 无禁行区域 · 芝麻免押</b></aside>
+      <aside className="rental-card">
+        <span>RENTAL CAR</span><h2>坦克 300 · 自动挡 2.0T · 5座</h2>
+        <p>9月30日 09:00 · 自行前往门店取车</p><p>10月9日 · 同一门店还车，时间待确认</p>
+        <div className="rental-place"><div><small>取还车门店</small><p>经开区高铁北二路 100 号凯坤壹品 1# 底商住宅楼商业 103 室</p></div><NavButton iconOnly label="在高德查看取还车门店" href={amapMarker(POINTS.rentalStore)}>地点</NavButton></div>
+        <button className="rental-guide" type="button" aria-label="查看租车门店取车指引原图" onClick={() => setPreview({ src: "/images/orders/rental-pickup-guide.jpg", alt: "租车门店取车指引" })}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/images/orders/rental-pickup-guide.jpg" alt="租车门店取车指引" loading="lazy" /><span><b>门店取车指引</b><small>身份证 + 驾驶证 · 验车拍照留证</small></span><i>查看原图</i>
+        </button>
+        <b>新订单 ¥3,030.90 · 自行取还 · 芝麻免押</b>
+      </aside>
+      {preview && <ImageLightbox preview={preview} onClose={() => setPreview(null)} />}
     </main>
   );
 }

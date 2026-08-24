@@ -130,11 +130,22 @@ await page.locator(".bottom-nav button").nth(1).click();
 await shot("14-trip-top");
 await page.locator(".rental-card").scrollIntoViewIfNeeded();
 await shot("15-trip-bottom");
+const rentalPlaceHref = await page.locator(".rental-place a").getAttribute("href");
+if (!rentalPlaceHref?.includes("position=87.542819,43.835345") || !rentalPlaceHref.includes(encodeURIComponent("滴滴租车取还车门店（凯坤壹品）"))) errors.push(`rental-place-link: ${rentalPlaceHref}`);
+const rentalPageCount = context.pages().length;
+const rentalPageUrl = page.url();
+await page.locator(".rental-guide").click();
+await page.locator(".image-lightbox").waitFor({ state: "visible" });
+const rentalPreviewLoaded = await page.locator(".image-lightbox img").evaluate((image) => image.naturalWidth > 0);
+if (!rentalPreviewLoaded) errors.push("rental-guide-preview: image did not load");
+if (context.pages().length !== rentalPageCount || page.url() !== rentalPageUrl) errors.push("rental-guide-preview: opened a new page");
+await shot("15b-rental-guide-full");
+await page.getByRole("button", { name: "关闭原图" }).click();
 
 await page.locator(".bottom-nav button").nth(2).click();
 await page.locator(".amap-canvas").waitFor({ state: "visible", timeout: 16_000 });
 await page.waitForFunction(() => (document.querySelector(".amap-canvas")?.childElementCount ?? 0) > 0, null, { timeout: 8_000 });
-const mapTimeChecks = ["航班日", "5—6 小时", "禾木区间车约 1 小时", "区间车约 3 小时", "区间车往返约 2 小时", "8.5 小时", "3.5 小时", "阔克苏往返另计", "5.5 小时", "7 小时", "还车 + 航班"];
+const mapTimeChecks = ["航班日", "5—6 小时", "禾木区间车约 1 小时", "区间车约 3 小时", "区间车往返约 2 小时", "8.5 小时", "3.5 小时", "阔克苏往返另计", "5.5 小时", "7 小时", "门店还车"];
 for (let index = 0; index < mapTimeChecks.length; index++) {
   await page.locator(".map-dates button").nth(index).click();
   await page.waitForTimeout(80);
@@ -155,8 +166,8 @@ await page.getByRole("button", { name: "王晶 张秋晨 · 王晶", exact: true
 await shot("20-ledger-settlement");
 const total = await page.locator(".ledger-hero strong").textContent();
 const transfer = await page.locator(".transfer").textContent();
-if (!total?.includes("10,295.53")) errors.push(`ledger-total: ${total}`);
-if (!transfer?.includes("5,147.76") || !transfer.includes("闫寒 · 刘一帆") || !transfer.includes("张秋晨 · 王晶")) errors.push(`ledger-transfer: ${transfer}`);
+if (!total?.includes("11,095.43")) errors.push(`ledger-total: ${total}`);
+if (!transfer?.includes("5,547.71") || !transfer.includes("闫寒 · 刘一帆") || !transfer.includes("张秋晨 · 王晶")) errors.push(`ledger-transfer: ${transfer}`);
 await page.getByRole("button", { name: "＋ 记一笔" }).click();
 await shot("21-ledger-new-expense");
 await page.getByLabel("付款内容").fill("图片预览验收");

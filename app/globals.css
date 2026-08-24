@@ -172,7 +172,19 @@ a { color: inherit; text-decoration: none; }
 .rental-card > span, .last-day-card > span { color: #deb090; font-size: 9px; font-weight: 700; letter-spacing: 1.6px; }
 .rental-card h2, .last-day-card h2 { margin: 15px 0 14px; font-size: 20px; font-weight: 400; }
 .rental-card p, .last-day-card p { margin: 7px 0; color: rgba(255,255,255,.7); font-size: 10px; line-height: 1.6; }
-.rental-card b { display: block; margin-top: 13px; color: #e4c6a7; font-size: 10px; }
+.rental-card > b { display: block; margin-top: 13px; color: #e4c6a7; font-size: 10px; }
+.rental-place { margin-top: 15px; padding: 12px; display: flex; align-items: center; gap: 12px; border-radius: 13px; background: rgba(255,255,255,.09); }
+.rental-place > div { min-width: 0; flex: 1; }
+.rental-place small { display: block; color: #e4c6a7; font-size: 9px; font-weight: 700; }
+.rental-place p { margin: 5px 0 0; color: rgba(255,255,255,.82); line-height: 1.55; }
+.rental-place a.amap-icon-button { color: var(--pine); background: white; }
+.rental-guide { width: 100%; min-height: 58px; margin-top: 10px; padding: 7px 10px 7px 7px; border: 0; border-radius: 13px; display: grid; grid-template-columns: 40px 1fr auto; gap: 10px; align-items: center; color: white; background: rgba(255,255,255,.09); text-align: left; cursor: zoom-in; }
+.rental-guide img { width: 40px; height: 44px; border-radius: 8px; display: block; object-fit: cover; object-position: top; }
+.rental-guide span { min-width: 0; }
+.rental-guide b, .rental-guide small { display: block; }
+.rental-guide b { font-size: 10px; }
+.rental-guide small { margin-top: 4px; overflow: hidden; color: rgba(255,255,255,.62); font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
+.rental-guide i { color: #e4c6a7; font-size: 8px; font-style: normal; }
 
 .checklist-page .page-header { padding-bottom: 23px; }
 .checklist-page .page-header h1 { margin-bottom: 7px; }
